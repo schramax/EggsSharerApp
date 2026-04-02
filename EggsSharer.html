@@ -24,6 +24,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
         :root {
@@ -357,7 +362,8 @@
                 es: "Eggs Sold", rev: "Revenue", cost: "Cost", np: "Net Profit",
                 tr_es: "Trend: Egg Stock Level", tr_he: "Trend: Harvested Eggs", tr_sv: "Trend: Sales Volume", tr_rf: "Trend: Revenue Flow", tr_pc: "Trend: Poultry Costs", tr_np: "Trend: Net Profit", sd: "Sales Distribution", cd: "Cost Distribution",
                 set_t: "Settings", set_s: "Manage your preferences and data", lang: "Language", en: "English", fr: "Français",
-                dm: "Data Management", exp: "Export", imp: "Import", reset_all: "Reset All Data", made_by: "Created with 🥚 by schrammax", prompt: "Enter value modification +/-"
+                dm: "Data Management", exp: "Export", imp: "Import", reset_all: "Reset All Data", made_by: "Created with 🥚 by schrammax", prompt: "Enter value modification +/-",
+                login_title: "Sign In to Sync", login_sub: "Access your shared flock data.", email: "Email Address", password: "Password", btn_login: "Login", btn_signup: "Create Account", logout: "Log Out"
             },
             fr: {
                 nav_home: "Accueil", nav_harv: "Récolte", nav_cons: "Clients", nav_sale: "Ventes", nav_cost: "Coûts", nav_rep: "Rapports", nav_set: "Paramètres",
@@ -375,9 +381,20 @@
                 es: "Œufs Vendus", rev: "Revenus", cost: "Coûts", np: "Bénéfice Net",
                 tr_es: "Tendance : Niveau de Stock", tr_he: "Tendance : Œufs Récoltés", tr_sv: "Tendance : Volume des Ventes", tr_rf: "Tendance : Flux de Revenus", tr_pc: "Tendance : Coûts du Poulailler", tr_np: "Tendance : Bénéfice Net", sd: "Répartition des Ventes", cd: "Répartition des Coûts",
                 set_t: "Paramètres", set_s: "Gérez vos préférences et vos données", lang: "Langue", en: "English", fr: "Français",
-                dm: "Gestion des Données", exp: "Exporter", imp: "Importer", reset_all: "Réinitialiser tout", made_by: "Créé avec 🥚 par schrammax", prompt: "Entrez la modification +/-"
+                dm: "Gestion des Données", exp: "Exporter", imp: "Importer", reset_all: "Réinitialiser tout", made_by: "Créé avec 🥚 par schrammax", prompt: "Entrez la modification +/-",
+                login_title: "Connexion à votre Poulailler", login_sub: "Accédez à vos données partagées.", email: "Adresse Email", password: "Mot de Passe", btn_login: "Se Connecter", btn_signup: "Créer un Compte", logout: "Déconnexion"
             }
         };
+
+        firebase.initializeApp({
+            apiKey: "AIzaSyCR1tcj9c7b1fOkVpkfJQv_uWF7LhMIK7Y",
+            authDomain: "eggssharer.firebaseapp.com",
+            databaseURL: "https://eggssharer-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "eggssharer",
+            storageBucket: "eggssharer.firebasestorage.app",
+            messagingSenderId: "242995441127",
+            appId: "1:242995441127:web:5be51f463f5c7d87d5e142"
+        });
 
         let savedSettings = null;
         try {
@@ -402,8 +419,13 @@
             }
         });
 
+        let dbRef = null;
+
         function save(store) {
             localStorage.setItem(`eggApp_${store}`, JSON.stringify(state[store]));
+            if (state.currentUser && dbRef) {
+                dbRef.child(store).set(state[store]);
+            }
         }
 
         function saveSettings() {
@@ -546,6 +568,10 @@
         let currentView = 'home';
 
         function updateNav() {
+            if (currentView === 'login') {
+                document.getElementById('bottom-nav').innerHTML = '';
+                return;
+            }
             document.getElementById('bottom-nav').innerHTML = `
                 <button class="nav-item ${currentView === 'home' ? 'active' : ''}" data-view="home"><i data-lucide="home"></i><span>${t('nav_home')}</span></button>
                 <button class="nav-item ${currentView === 'harvest' ? 'active' : ''}" data-view="harvest"><i data-lucide="egg"></i><span>${t('nav_harv')}</span></button>
@@ -574,6 +600,7 @@
             updateNav();
             mainContent.innerHTML = ''; // Clear previous view
             switch (view) {
+                case 'login': renderLogin(); break;
                 case 'home': renderHome(); break;
                 case 'harvest': renderHarvest(); break;
                 case 'consumers': renderConsumers(); break;
@@ -591,6 +618,45 @@
          * VIEW RENDERING FUNCTIONS
          * =========================================
          */
+
+        /** Renders the Login view. */
+        function renderLogin() {
+            mainContent.innerHTML = `
+                <div class="view-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height: 80vh">
+                    <div class="card" style="width: 100%; max-width: 400px; text-align: center">
+                        <i data-lucide="cloud" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem"></i>
+                        <h2 class="view-title">${t('login_title')}</h2>
+                        <p class="view-subtitle" style="margin-bottom: 2rem">${t('login_sub')}</p>
+                        
+                        <div class="form-group" style="text-align: left">
+                            <label>${t('email')}</label>
+                            <input type="email" id="l-email" class="form-input" placeholder="farmer@coop.com">
+                        </div>
+                        <div class="form-group" style="text-align: left">
+                            <label>${t('password')}</label>
+                            <input type="password" id="l-pass" class="form-input" placeholder="••••••••">
+                        </div>
+                        
+                        <button class="btn btn-primary btn-block" style="margin-bottom: 0.5rem" onclick="login()">${t('btn_login')}</button>
+                        <button class="btn btn-secondary btn-block" onclick="signup()">${t('btn_signup')}</button>
+                    </div>
+                </div>
+            `;
+            
+            window.login = () => {
+                const e = document.getElementById('l-email').value;
+                const p = document.getElementById('l-pass').value;
+                if (!e || !p) return;
+                firebase.auth().signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
+            };
+            
+            window.signup = () => {
+                const e = document.getElementById('l-email').value;
+                const p = document.getElementById('l-pass').value;
+                if (!e || !p) return;
+                firebase.auth().createUserWithEmailAndPassword(e, p).catch(err => alert(err.message));
+            };
+        }
 
         /** Renders the Home Dashboard with quick stats and actions. */
         function renderHome() {
@@ -1416,6 +1482,7 @@
                             <button class="btn btn-secondary btn-block" onclick="importData()"><i data-lucide="upload"></i> ${t('imp')}</button>
                         </div>
                         <button class="btn btn-block" style="margin-top: 0.5rem; background: #fff0f0; color: #d63031; border: 1px solid #fab1a0" onclick="resetAllData()"><i data-lucide="trash-2"></i> ${t('reset_all')}</button>
+                        <button class="btn btn-block" style="margin-top: 0.5rem; background: #fdfbf7; color: var(--primary); border: 1px solid var(--border)" onclick="firebase.auth().signOut()"><i data-lucide="log-out"></i> ${t('logout')}</button>
                     </div>
 
                     <div style="text-align: center; margin-top: 2rem; color: #999; font-size: 0.8rem;">
@@ -1446,8 +1513,53 @@
             });
         }
 
-        // Initialize the app by opening the Home View
-        renderView('home');
+        // Firebase Sync Engine
+        function startDatabaseListeners(uid) {
+            dbRef = firebase.database().ref('users/' + uid);
+            
+            dbRef.once('value').then(snap => {
+                if (!snap.exists() || snap.val().__initialized !== true) {
+                    // First time login! Push all local historical data to new cloud account.
+                    const batch = { __initialized: true };
+                    STORES.forEach(s => batch[s] = state[s] || []);
+                    dbRef.set(batch);
+                }
+                
+                // Realtime Sync Listener
+                dbRef.on('value', snap => {
+                    const data = snap.val();
+                    if (!data) return;
+                    
+                    let changed = false;
+                    STORES.forEach(s => {
+                        const cloudStr = JSON.stringify(data[s] || []);
+                        const localStr = JSON.stringify(state[s] || []);
+                        if (cloudStr !== localStr) {
+                            state[s] = data[s] || [];
+                            localStorage.setItem(`eggApp_${s}`, cloudStr);
+                            changed = true;
+                        }
+                    });
+                    
+                    // Update UI gracefully if external changes came in
+                    if (changed && currentView !== 'login') {
+                        renderView(currentView);
+                    }
+                });
+            });
+        }
+
+        // Initialize Authentication
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                state.currentUser = user;
+                startDatabaseListeners(user.uid);
+                renderView('home');
+            } else {
+                state.currentUser = null;
+                renderView('login');
+            }
+        });
     </script>
 </body>
 
