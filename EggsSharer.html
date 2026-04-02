@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Eggs Sharer App</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2d5a27">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="EggsSharer">
+    <link rel="apple-touch-icon" href="EggsSharer.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    <style>
+        :root {
+            --primary: #2d5a27;
+            --primary-light: #4c8a44;
+            --primary-dark: #1e3d1a;
+            --secondary: #f4c430;
+            --background: #fdfbf7;
+            --card: #ffffff;
+            --text: #1a1a1a;
+            --text-muted: #666666;
+            --border: rgba(0, 0, 0, 0.08);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            --border-radius: 20px;
+            --nav-height: 80px;
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: calc(var(--nav-height) + var(--safe-area-bottom));
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        main {
+            padding: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Nav Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(var(--nav-height) + var(--safe-area-bottom));
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: var(--safe-area-bottom);
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: #999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+
+        .nav-item i {
+            width: 22px;
+            height: 22px;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        /* View Headers */
+        .view-header {
+            margin-bottom: 1.5rem;
+            padding: 0.5rem 0;
+        }
+
+        .view-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+
+        .view-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Cards and Sections */
+        .card {
+            background: var(--card);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #eee;
+            color: var(--text);
+        }
+
+        .btn-action {
+            background: var(--secondary);
+            color: var(--text);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            font-size: 0.95rem;
+            outline: none;
+            background: #fafafa;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        /* Tabs and Filters */
+        .filter-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* History Items */
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Utility */
+        .hidden {
+            display: none !important;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .badge-sale {
+            background: rgba(45, 90, 39, 0.1);
+            color: var(--primary);
+        }
+
+        .badge-gift {
+            background: rgba(244, 196, 48, 0.1);
+            color: #856404;
+        }
+
+        .badge-own {
+            background: rgba(102, 102, 102, 0.1);
+            color: #666;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .view-content {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <nav class="bottom-nav" id="bottom-nav">
+        </nav>
+
+        <main id="main-content"></main>
+    </div>
+
+    <script>
+        /**
+         * =========================================
+         * DATA STORE & PERSISTENCE
+         * =========================================
+         * Application State is persisted entirely in the browser's localStorage.
+         * The STORES array defines the keys used for saving/loading data.
+         */
+        const STORES = ['harvest', 'consumers', 'sales', 'costs', 'stock_adjustments'];
+        const I18N = {
+            en: {
+                nav_home: "Home", nav_harv: "Harvest", nav_cons: "Consumers", nav_sale: "Sales", nav_cost: "Costs", nav_rep: "Reports", nav_set: "Settings",
+                app_title: "Eggs Sharer App", app_sub: "Your flock is doing great!", in_stock: "In Stock", total_sales: "Total Sales", balance: "Balance", adj_sc: "Adjust Stock Value",
+                qa: "Quick Actions", add_h: "Add Harvest", add_c: "Add Consumer", add_s: "Add Sale", add_cost: "Add Cost",
+                harv_title: "Eggs Harvest", harv_sub: "How many eggs were collected today?", lmt: "Last Month Total",
+                da: "Daily Avg", date: "Date", no_eggs: "Number of Eggs", save_h: "Save Harvest", reset_h: "Reset Harvest History", hh: "Harvest History", eggs: "eggs",
+                cons_t: "Consumers List", cons_sub: "Here are all the people liking your eggs!", tc: "Total Consumers",
+                fullname: "Full Name", phone: "Phone Number", comment: "Comment (Optional)", save_cons: "Save Consumer Info", res_cons: "Reset Consumers List", unknown: "Unknown",
+                st: "Sale Management", ss: "These eggs are worth sharing!", sm: "Sales (Month)", rm: "Revenue (Month)", esm: "Eggs Sold (Month)", cons: "Consumer", sel_cons: "Select consumer",
+                tot: "Type of Transaction", sale: "Sale", gift: "Gift", own: "Own Use", price: "Price Asked (€)", pm: "Payment Method",
+                banct: "Bancontact App link", cash: "Cash", none: "N/A", plink: "Payconiq Link (Paste here)", save_ns: "Save without Sharing", gen_sh: "General Share", res_sh: "Reset Sales History", shis: "Sales History", eggs_to: "eggs to",
+                pt_t: "Poultry Costs", pt_s: "These eggs are not free, alas!", tmc: "Total Costs (Month)", cost_e: "Cost (€)", cat: "Category", food: "Food", lit: "Litter", med: "Medicine", oth: "Others", lc: "Log Cost", res_c: "Reset Costs History", ch: "Costs History",
+                rep_t: "Reports", rep_s: "Insights into your poultry performance!", lm: "Last Month", m3: "3 Months", ly: "Last Year", ever: "Ever", harv: "Harvested",
+                es: "Eggs Sold", rev: "Revenue", cost: "Cost", np: "Net Profit",
+                tr_es: "Trend: Egg Stock Level", tr_he: "Trend: Harvested Eggs", tr_sv: "Trend: Sales Volume", tr_rf: "Trend: Revenue Flow", tr_pc: "Trend: Poultry Costs", tr_np: "Trend: Net Profit", sd: "Sales Distribution", cd: "Cost Distribution",
+                set_t: "Settings", set_s: "Manage your preferences and data", lang: "Language", en: "English", fr: "Français",
+                dm: "Data Management", exp: "Export", imp: "Import", reset_all: "Reset All Data", made_by: "Created with 🥚 by schrammax", prompt: "Enter value modification +/-"
+            },
+            fr: {
+                nav_home: "Accueil", nav_harv: "Récolte", nav_cons: "Clients", nav_sale: "Ventes", nav_cost: "Coûts", nav_rep: "Rapports", nav_set: "Paramètres",
+                app_title: "Eggs Sharer App", app_sub: "Votre poulailler se porte bien !", in_stock: "En Stock", total_sales: "Ventes Totales", balance: "Solde", adj_sc: "Ajuster la quantité",
+                qa: "Actions Rapides", add_h: "Ajout Récolte", add_c: "Ajout Client", add_s: "Ajout Vente", add_cost: "Ajout Coût",
+                harv_title: "Récolte d'Œufs", harv_sub: "Combien d'œufs ont été récoltés aujourd'hui ?", lmt: "Total (Mois dernier)",
+                da: "Moyenne Quotidienne", date: "Date", no_eggs: "Nombre d'Œufs", save_h: "Enregistrer Récolte", reset_h: "Effacer l'historique", hh: "Historique des Récoltes", eggs: "œufs",
+                cons_t: "Liste des Clients", cons_sub: "Voici toutes les personnes qui aiment vos œufs !", tc: "Total des Clients",
+                fullname: "Nom Complet", phone: "Numéro de Téléphone", comment: "Comment (Optionnel)", save_cons: "Enregistrer Client", res_cons: "Réinitialiser la liste", unknown: "Inconnu",
+                st: "Gestion des Ventes", ss: "Ces œufs méritent d'être partagés !", sm: "Ventes (Mois)", rm: "Revenus (Mois)", esm: "Œufs Vendus (Mois)", cons: "Client", sel_cons: "Sélectionner un client",
+                tot: "Type de Transaction", sale: "Vente", gift: "Don", own: "Usage Personnel", price: "Prix Demandé (€)", pm: "Méthode de Paiement",
+                banct: "Lien Bancontact", cash: "Espèces", none: "N/A", plink: "Lien Payconiq (Coller ici)", save_ns: "Enregistrer sans partager", gen_sh: "Partage Général", res_sh: "Effacer l'historique", shis: "Historique des Ventes", eggs_to: "œufs à",
+                pt_t: "Coûts du Poulailler", pt_s: "Ces œufs ne sont pas gratuits, hélas !", tmc: "Coûts Totaux (Mois)", cost_e: "Coût (€)", cat: "Catégorie", food: "Nourriture", lit: "Litière", med: "Médicaments", oth: "Autres", lc: "Enregistrer Coût", res_c: "Effacer l'historique", ch: "Historique des Coûts",
+                rep_t: "Rapports", rep_s: "Aperçu des performances de votre poulailler !", lm: "Mois Dernier", m3: "3 Mois", ly: "L'année dernière", ever: "Toujours", harv: "Récolté",
+                es: "Œufs Vendus", rev: "Revenus", cost: "Coûts", np: "Bénéfice Net",
+                tr_es: "Tendance : Niveau de Stock", tr_he: "Tendance : Œufs Récoltés", tr_sv: "Tendance : Volume des Ventes", tr_rf: "Tendance : Flux de Revenus", tr_pc: "Tendance : Coûts du Poulailler", tr_np: "Tendance : Bénéfice Net", sd: "Répartition des Ventes", cd: "Répartition des Coûts",
+                set_t: "Paramètres", set_s: "Gérez vos préférences et vos données", lang: "Langue", en: "English", fr: "Français",
+                dm: "Gestion des Données", exp: "Exporter", imp: "Importer", reset_all: "Réinitialiser tout", made_by: "Créé avec 🥚 par schrammax", prompt: "Entrez la modification +/-"
+            }
+        };
+
+        let savedSettings = null;
+        try {
+            savedSettings = JSON.parse(localStorage.getItem('eggApp_settings'));
+        } catch (e) {
+            console.warn("Corrupted settings in localStorage", e);
+        }
+        let state = {
+            settings: (savedSettings && savedSettings.lang) ? savedSettings : { lang: 'en' }
+        };
+        const t = (k) => {
+            const lang = state.settings?.lang || 'en';
+            return I18N[lang] ? (I18N[lang][k] || k) : k;
+        };
+
+        STORES.forEach(s => {
+            try {
+                state[s] = JSON.parse(localStorage.getItem(`eggApp_${s}`)) || [];
+            } catch (e) {
+                console.warn(`Corrupted store: ${s}`, e);
+                state[s] = [];
+            }
+        });
+
+        function save(store) {
+            localStorage.setItem(`eggApp_${store}`, JSON.stringify(state[store]));
+        }
+
+        function saveSettings() {
+            localStorage.setItem('eggApp_settings', JSON.stringify(state.settings));
+        }
+
+        /** 
+         * Exports all current data to a downloadable JSON file. 
+         */
+        function exportData() {
+            const dataStr = JSON.stringify(state, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `EggStock_Backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        /** 
+         * Importer that reads a JSON file and overrides the current state cautiously. 
+         */
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const imported = JSON.parse(event.target.result);
+                        if (confirm('Are you sure? This will OVERWRITE your current data with the backup file.')) {
+                            STORES.forEach(s => {
+                                if (imported[s]) {
+                                    state[s] = imported[s];
+                                    save(s);
+                                }
+                            });
+                            alert('Data restored successfully!');
+                            window.location.reload();
+                        }
+                    } catch (err) { alert('Invalid backup file.'); }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        /** WARNING: Hard reset of the entire application state. */
+        function resetAllData() {
+            if (confirm('⚠️ WARNING: This will delete ALL data (Production, Sales, Consumers, Costs, etc.). Are you sure?')) {
+                STORES.forEach(s => {
+                    state[s] = [];
+                    save(s);
+                });
+                alert('All data has been reset.');
+                window.location.reload();
+            }
+        }
+
+        /** Resets an individual tab's list of items. */
+        function resetTabData(tab) {
+            if (confirm(`⚠️ Are you sure you want to delete all ${tab} data? This cannot be undone.`)) {
+                state[tab] = [];
+                save(tab);
+                renderView(tab);
+            }
+        }
+
+        /** General purpose function to delete an item from a store by its unique ID. */
+        function deleteItem(store, id) {
+            if (confirm('Delete this entry?')) {
+                state[store] = state[store].filter(item => item.id !== id);
+                save(store);
+                const activeNav = document.querySelector('.nav-item.active');
+                if (activeNav) renderView(activeNav.dataset.view);
+            }
+        }
+
+        /**
+         * =========================================
+         * CALCULATIONS & STATISTICS
+         * =========================================
+         */
+
+        /** 
+         * Computes the current inventory of eggs.
+         * Total harvested MINUS total sold PLUS any manual adjustments.
+         */
+        function getCalculatedStock() {
+            const totalHarvest = state.harvest.reduce((sum, h) => sum + h.count, 0);
+            const totalSold = state.sales.reduce((sum, s) => sum + s.count, 0);
+            const totalAdjust = state.stock_adjustments.reduce((sum, a) => sum + a.amount, 0);
+            return totalHarvest - totalSold + totalAdjust;
+        }
+
+        /** 
+         * Computes total counts and averages over a specified timeframe.
+         * @param {string} store - State array to look at.
+         * @param {string} dateField - Object key name that holds the date.
+         * @param {string} valueField - Object key name that holds the numeric value to accumulate.
+         * @param {number} months - How many months to look back. 0 implies all time.
+         */
+        function getMonthlyStats(store, dateField = 'date', valueField = 'amount', months = 1) {
+            const now = new Date();
+            const threshold = months === 0 ?
+                (state[store].length ? new Date(state[store][0][dateField]) : now) :
+                new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
+
+            const filtered = state[store].filter(item => new Date(item[dateField]) >= threshold);
+            const total = filtered.reduce((sum, item) => sum + (typeof item[valueField] === 'number' ? item[valueField] : 0), 0);
+
+            const days = Math.max(1, Math.ceil((now - threshold) / (1000 * 60 * 60 * 24)));
+            return { total, count: filtered.length, avg: total / days };
+        }
+
+        /**
+         * Generic sort utility for sorting objects by a specific field.
+         * @param {Array} arr - The array to sort.
+         * @param {string} key - The object key to sort by.
+         * @param {boolean} desc - Whether to sort in descending order.
+         */
+        function getSorted(arr, key = 'date', desc = true) {
+            return [...arr].sort((a, b) => {
+                const valA = a[key] || '';
+                const valB = b[key] || '';
+                if (key === 'date') return desc ? new Date(valB) - new Date(valA) : new Date(valA) - new Date(valB);
+                return desc ? valB.localeCompare(valA) : valA.localeCompare(valB);
+            });
+        }
+
+        /**
+         * =========================================
+         * NAVIGATION & ROUTING
+         * =========================================
+         */
+        const mainContent = document.getElementById('main-content');
+        let currentView = 'home';
+
+        function updateNav() {
+            document.getElementById('bottom-nav').innerHTML = `
+                <button class="nav-item ${currentView === 'home' ? 'active' : ''}" data-view="home"><i data-lucide="home"></i><span>${t('nav_home')}</span></button>
+                <button class="nav-item ${currentView === 'harvest' ? 'active' : ''}" data-view="harvest"><i data-lucide="egg"></i><span>${t('nav_harv')}</span></button>
+                <button class="nav-item ${currentView === 'consumers' ? 'active' : ''}" data-view="consumers"><i data-lucide="users"></i><span>${t('nav_cons')}</span></button>
+                <button class="nav-item ${currentView === 'sales' ? 'active' : ''}" data-view="sales"><i data-lucide="shopping-cart"></i><span>${t('nav_sale')}</span></button>
+                <button class="nav-item ${currentView === 'costs' ? 'active' : ''}" data-view="costs"><i data-lucide="banknote"></i><span>${t('nav_cost')}</span></button>
+                <button class="nav-item ${currentView === 'reports' ? 'active' : ''}" data-view="reports"><i data-lucide="bar-chart-2"></i><span>${t('nav_rep')}</span></button>
+                <button class="nav-item ${currentView === 'settings' ? 'active' : ''}" data-view="settings"><i data-lucide="settings"></i><span>${t('nav_set')}</span></button>
+            `;
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    currentView = item.dataset.view;
+                    renderView(currentView);
+                });
+            });
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        /**
+         * Master view renderer. Clears the main container and maps the view name
+         * to a specific rendering function.
+         * @param {string} view - The view identifier.
+         */
+        function renderView(view) {
+            currentView = view;
+            updateNav();
+            mainContent.innerHTML = ''; // Clear previous view
+            switch (view) {
+                case 'home': renderHome(); break;
+                case 'harvest': renderHarvest(); break;
+                case 'consumers': renderConsumers(); break;
+                case 'sales': renderSales(); break;
+                case 'costs': renderCosts(); break;
+                case 'reports': renderReports(); break;
+                case 'settings': renderSettings(); break;
+            }
+            if (window.lucide) window.lucide.createIcons();
+            window.scrollTo(0, 0); // Reset scroll position
+        }
+
+        /**
+         * =========================================
+         * VIEW RENDERING FUNCTIONS
+         * =========================================
+         */
+
+        /** Renders the Home Dashboard with quick stats and actions. */
+        function renderHome() {
+            const rev = state.sales.reduce((sum, s) => sum + (s.price || 0), 0);
+            const cost = state.costs.reduce((sum, c) => sum + (c.amount || 0), 0);
+
+            mainContent.innerHTML = `
+                <div class="view-content">
+                    <header class="view-header">
+                        <h1 class="view-title">${t('app_title')}</h1>
+                        <p class="view-subtitle">${t('app_sub')}</p>
+                    </header>
+
+                    <div class="card stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${getCalculatedStock()}</div>
+                            <div class="stat-label">${t('in_stock')}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${state.consumers.length}</div>
+                            <div class="stat-label">${t('nav_cons')}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${state.sales.length}</div>
+                            <div class="stat-label">${t('total_sales')}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${(rev - cost).toFixed(2)}€</div>
+                            <div class="stat-label">${t('balance')}</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="stat-label" style="margin-bottom: 0.5rem">${t('adj_sc')}</h3>
+                        <div class="stats-grid">
+                            <div class="form-input" style="text-align: center; font-weight: bold">${getCalculatedStock()}</div>
+                            <button class="btn btn-primary" onclick="adjustStock()">${t('adj_sc')}</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="stat-label" style="margin-bottom: 1rem">${t('qa')}</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem">
+                            <button class="btn btn-secondary btn-block" onclick="renderView('harvest')">${t('add_h')}</button>
+                            <button class="btn btn-secondary btn-block" onclick="renderView('consumers')">${t('add_c')}</button>
+                            <button class="btn btn-secondary btn-block" onclick="renderView('sales')">${t('add_s')}</button>
+                            <button class="btn btn-secondary btn-block" onclick="renderView('costs')">${t('add_cost')}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.adjustStock = () => {
+            const val = prompt(t('prompt'));
+            if (val && !isNaN(val)) {
+                state.stock_adjustments.push({ id: Date.now().toString(), date: new Date().toISOString(), amount: parseInt(val) });
+                save('stock_adjustments');
+                renderView(currentView);
+            }
+        };
+
+        /** Renders the Harvest tracking tab */
+        function renderHarvest() {
+            const stats = getMonthlyStats('harvest', 'date', 'count');
+            mainContent.innerHTML = `
+                <div class="view-content">
+                    <header class="view-header">
+                        <h1 class="view-title">${t('harv_title')}</h1>
+                        <p class="view-subtitle">${t('harv_sub')}</p>
+                    </header>
+
+                    <div class="card stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.total}</div>
+                            <div class="stat-label">${t('lmt')}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.avg.toFixed(1)}</div>
+                            <div class="stat-label">${t('da')}</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <form id="harvest-form">
+                            <div class="form-group">
+                                <label>${t('date')}</label>
+                                <input type="date" id="h-date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <div class="form-group">
+                                <label>${t('no_eggs')}</label>
+                                <input type="number" id="h-count" class="form-input" value="4">
+                            </div>
+                            <button class="btn btn-primary btn-block">${t('save_h')}</button>
+                        </form>
+                    </div>
+
+                    <div style="margin-bottom: 1rem; text-align: center;">
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem; padding: 0.4rem 0.8rem; color: #d63031;" onclick="resetTabData('harvest')">${t('reset_h')}</button>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="stat-label" style="margin-bottom: 1rem">${t('hh')}</h3>
+                        ${getSorted(state.harvest).map(h => `
+                            <div class="history-item">
+                                <div><strong>${h.count} ${t('eggs')}</strong> <span style="font-size: 0.8rem; color: #999">${new Date(h.date).toLocaleDateString()}</span></div>
+                                <button class="btn" style="color: #ff4757" onclick="deleteItem('harvest', '${h.id}')"><i data-lucide="trash-2"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('harvest-form').onsubmit = (e) => {
+                e.preventDefault();
+                state.harvest.push({
+                    id: Date.now().toString(),
+                    date: document.getElementById('h-date').value,
+                    count: parseInt(document.getElementById('h-count').value)
+                });
+                save('harvest');
+                renderView('harvest');
+            };
+        }
+
+        /** Renders the Consumers list CRM */
+        function renderConsumers() {
+            mainContent.innerHTML = `
+                <div class="view-content">
+                    <header class="view-header">
+                        <h1 class="view-title">${t('cons_t')}</h1>
+                        <p class="view-subtitle">${t('cons_sub')}</p>
+                    </header>
+
+                    <div class="card">
+                        <div class="stat-card">
+                            <div class="stat-value">${state.consumers.length}</div>
+                            <div class="stat-label">${t('tc')}</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <form id="consumer-form">
+                            <div class="form-group">
+                                <label>${t('fullname')}</label>
+                                <input type="text" id="c-name" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>${t('phone')}</label>
+                                <input type="tel" id="c-phone" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>${t('comment')}</label>
+                                <input type="text" id="c-comment" class="form-input">
+                            </div>
+                            <button class="btn btn-primary btn-block">${t('save_cons')}</button>
+                        </form>
+                    </div>
+
+                    <div style="margin-bottom: 1rem; text-align: center;">
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem; padding: 0.4rem 0.8rem; color: #d63031;" onclick="resetTabData('consumers')">${t('res_cons')}</button>
+                    </div>
+
+                    <div id="consumer-list">
+                        ${getSorted(state.consumers, 'name', false).map(c => `
+                            <div class="card history-item">
+                                <div>
+                                    <div class="list-item-title"><strong>${c.name}</strong></div>
+                                    <div class="list-item-subtitle">${c.phone} ${c.comment ? '• ' + c.comment : ''}</div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem">
+                                    <button class="btn btn-secondary" onclick="startSale('${c.id}')"><i data-lucide="plus"></i></button>
+                                    <button class="btn" style="color: #ff4757" onclick="deleteItem('consumers', '${c.id}')"><i data-lucide="trash-2"></i></button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('consumer-form').onsubmit = (e) => {
+                e.preventDefault();
+                const name = document.getElementById('c-name').value;
+                const phone = document.getElementById('c-phone').value;
+                const comment = document.getElementById('c-comment').value;
+
+                const existingIndex = state.consumers.findIndex(c => c.name.toLowerCase() === name.toLowerCase());
+                if (existingIndex > -1) {
+                    state.consumers[existingIndex] = { ...state.consumers[existingIndex], phone, comment };
+                } else {
+                    state.consumers.push({ id: Date.now().toString(), name, phone, comment });
+                }
+                save('consumers');
+                renderView('consumers');
+            };
+        }
+
+        window.startSale = (id) => {
+            renderView('sales');
+            setTimeout(() => { document.getElementById('s-consumer').value = id; }, 10);
+        };
+
+        /** Renders the Sales recording and history tab */
+        function renderSales() {
+            const stats = getMonthlyStats('sales', 'date', 'price');
+            const eggsSold = getMonthlyStats('sales', 'date', 'count');
+
+            mainContent.innerHTML = `
+                <div class="view-content">
+                    <header class="view-header">
+                        <h1 class="view-title">${t('st')}</h1>
+                        <p class="view-subtitle">${t('ss')}</p>
+                    </header>
+
+                    <div class="card stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.count}</div>
+                            <div class="stat-label">${t('sm')}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.total.toFixed(1)}€</div>
+                            <div class="stat-label">${t('rm')}</div>
+                        </div>
+                        <div class="stat-card" style="grid-column: span 2">
+                            <div class="stat-value">${eggsSold.total}</div>
+                            <div class="stat-label">${t('esm')}</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <form id="sales-form">
+                            <div class="form-group">
+                                <label>${t('date')}</label>
+                                <input type="date" id="s-date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <div class="form-group">
+                                <label>${t('cons')}</label>
+                                <select id="s-consumer" class="form-input" required>
+                                    <option value="">${t('sel_cons')}</option>
+                                    ${state.consumers.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>${t('no_eggs')}</label>
+                                <input type="number" id="s-count" class="form-input" value="6">
+                            </div>
+                            <div class="form-group">
+                                <label>${t('tot')}</label>
+                                <select id="s-type" class="form-input">
+                                    <option value="sale" selected>${t('sale')}</option>
+                                    <option value="gift">${t('gift')}</option>
+                                    <option value="own">${t('own')}</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>${t('price')}</label>
+                                <input type="number" id="s-price" class="form-input" value="2" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label>${t('pm')}</label>
+                                <select id="s-payment" class="form-input">
+                                    <option value="bancontact" selected>${t('banct')}</option>
+                                    <option value="cash">${t('cash')}</option>
+                                    <option value="none">${t('none')}</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="paylink-group">
+                                <label>${t('plink')}</label>
+                                <input type="url" id="s-paylink" class="form-input">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
+                                <button type="button" class="btn btn-primary" onclick="submitSale('save')">${t('save_ns')}</button>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem">
+                                <button type="button" class="btn btn-secondary" onclick="submitSale('whatsapp')">WhatsApp</button>
+                                <button type="button" class="btn btn-secondary" onclick="submitSale('share')">${t('gen_sh')}</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div style="margin-bottom: 1rem; text-align: center;">
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem; padding: 0.4rem 0.8rem; color: #d63031;" onclick="resetTabData('sales')">${t('res_sh')}</button>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="stat-label" style="margin-bottom: 1rem">${t('shis')}</h3>
+                        ${getSorted(state.sales).map(s => {
+                const c = state.consumers.find(con => con.id === s.consumerId);
+                return `
+                                <div class="history-item">
+                                    <div>
+                                        <span class="badge badge-${s.type}">${s.type}</span>
+                                        <strong>${s.count} ${t('eggs_to')} ${c ? c.name : t('unknown')}</strong><br>
+                                        <span style="font-size: 0.8rem; color: #999">${new Date(s.date).toLocaleDateString()} • ${s.price}€ (${s.payment})</span>
+                                    </div>
+                                    <div style="display: flex; gap: 0.3rem">
+                                        <button class="btn btn-secondary" onclick="resendSale('${s.id}')"><i data-lucide="share-2"></i></button>
+                                        <button class="btn" style="color: #ff4757" onclick="deleteItem('sales', '${s.id}')"><i data-lucide="trash-2"></i></button>
+                                    </div>
+                                </div>
+                            `;
+            }).join('')}
+                    </div>
+                </div>
+            `;
+
+            const typeSel = document.getElementById('s-type');
+            const priceInput = document.getElementById('s-price');
+            const paySel = document.getElementById('s-payment');
+            const payGroup = document.getElementById('paylink-group');
+
+            typeSel.onchange = () => {
+                if (typeSel.value === 'gift' || typeSel.value === 'own') {
+                    priceInput.value = 0;
+                    paySel.value = 'none';
+                    payGroup.classList.add('hidden');
+                } else {
+                    priceInput.value = 2;
+                    paySel.value = 'bancontact';
+                    payGroup.classList.remove('hidden');
+                }
+            };
+
+            paySel.onchange = () => {
+                payGroup.classList.toggle('hidden', paySel.value !== 'bancontact');
+            };
+
+            window.submitSale = (method) => {
+                const consumerId = document.getElementById('s-consumer').value;
+                if (!consumerId) return alert('Select a consumer');
+                const sale = {
+                    id: Date.now().toString(),
+                    date: document.getElementById('s-date').value,
+                    consumerId,
+                    count: parseInt(document.getElementById('s-count').value),
+                    type: typeSel.value,
+                    price: parseFloat(priceInput.value),
+                    payment: paySel.value,
+                    payLink: document.getElementById('s-paylink').value
+                };
+                state.sales.push(sale);
+                save('sales');
+                if (method !== 'save') shareSale(sale.id, method);
+                renderView('sales');
+            };
+        }
+
+        window.shareSale = (id, method) => {
+            const s = state.sales.find(x => x.id === id);
+            const c = state.consumers.find(con => con.id === s.consumerId);
+
+            const msgEN = `Hi ${c ? c.name : 'there'}!\nI have ${s.count} fresh eggs ready for you for a total price of ${s.price}€.\n${s.payLink ? 'Can you pay here, please? ' + s.payLink + '\n' : ''}Thank you and see you soon.`;
+            const msgFR = `Bonjour ${c ? c.name : ''} !\nJ'ai ${s.count} œufs frais prêts pour toi pour un total de ${s.price}€.\n${s.payLink ? 'Voici le lien de paiement : ' + s.payLink + '\n' : ''}Merci et à très bientôt !`;
+            const msg = (state.settings.lang === 'fr') ? msgFR : msgEN;
+
+            if (method === 'whatsapp') {
+                window.open(`https://wa.me/${c ? c.phone.replace(/[^0-9]/g, '') : ''}?text=${encodeURIComponent(msg)}`);
+            } else {
+                if (navigator.share) {
+                    navigator.share({ text: msg }).catch(() => { });
+                } else {
+                    const alertMsg = (state.settings.lang === 'fr') ? 'Partage non supporté par ce navigateur. Message copié.' : 'Sharing not supported on this browser. Message copied to clipboard';
+                    alert(alertMsg);
+                    navigator.clipboard.writeText(msg);
+                }
+            }
+        };
+
+        window.resendSale = (id) => {
+            const confMsg = (state.settings.lang === 'fr') ? 'Envoyer via WhatsApp ? (Annuler pour un partage général)' : 'Send via WhatsApp? (Cancel for General Share)';
+            const method = confirm(confMsg) ? 'whatsapp' : 'share';
+            shareSale(id, method);
+        };
+
+        /** Renders the Costs tracking tab */
+        function renderCosts() {
+            const stats = getMonthlyStats('costs', 'date', 'amount');
+            mainContent.innerHTML = `
+                <div class="view-content">
+                    <header class="view-header">
+                        <h1 class="view-title">${t('pt_t')}</h1>
+                        <p class="view-subtitle">${t('pt_s')}</p>
+                    </header>
+
+                    <div class="card">
+                        <div class="stat-card">
+                            <div class="stat-value">${stats.total.toFixed(2)}€</div>
+                            <div class="stat-label">${t('tmc')}</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <form id="cost-form">
+                            <div class="form-group">
+                                <label>${t('date')}</label>
+                                <input type="date" id="cost-date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <div class="form-group">
+                                <label>${t('cost_e')}</label>
+                                <input type="number" id="cost-amount" class="form-input" value="0.00" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>${t('cat')}</label>
+                                <select id="cost-cat" class="form-input">
+                                    <option value="food">${t('food')}</option>
+                                    <option value="litter">${t('lit')}</option>
+                                    <option value="medicine">${t('med')}</option>
+                                    <option value="others">${t('oth')}</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary btn-block">${t('lc')}</button>
+                        </form>
+                    </div>
+
+                    <div style="margin-bottom: 1rem; text-align: center;">
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem; padding: 0.4rem 0.8rem; color: #d63031;" onclick="resetTabData('costs')">${t('res_c')}</button>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="stat-label" style="margin-bottom: 1rem">${t('ch')}</h3>
+                        ${getSorted(state.costs).map(c => `
+                            <div class="history-item">
+                                <div><strong>${c.amount}€ (${c.category})</strong> <span style="font-size: 0.8rem; color: #999">${new Date(c.date).toLocaleDateString()}</span></div>
+                                <button class="btn" style="color: #ff4757" onclick="deleteItem('costs', '${c.id}')"><i data-lucide="trash-2"></i></button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('cost-form').onsubmit = (e) => {
+                e.preventDefault();
+                state.costs.push({
+                    id: Date.now().toString(),
+                    date: document.getElementById('cost-date').value,
+                    amount: parseFloat(document.getElementById('cost-amount').value),
+                    category: document.getElementById('cost-cat').value
+                });
+                save('costs');
+                renderView('costs');
+            };
+        }
+
+        /** 
+         * Renders the Reports Dashboard.
+         * The charts are generated dynamically via updateReports() based on the selected time filter.
+         */
+        function renderReports() {
+            mainContent.innerHTML = `
+                <div class="view-content">
+                    <header class="view-header">
+                        <h1 class="view-title">${t('rep_t')}</h1>
+                        <p class="view-subtitle">${t('rep_s')}</p>
+                    </header>
+
+                    <div class="filter-bar">
+                        <button class="filter-btn active" data-period="1">${t('lm')}</button>
+                        <button class="filter-btn" data-period="3">${t('m3')}</button>
+                        <button class="filter-btn" data-period="12">${t('ly')}</button>
+                        <button class="filter-btn" data-period="0">${t('ever')}</button>
+                    </div>
+
+                    <div id="reports-content"></div>
+                </div>
+            `;
+
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.onclick = () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateReports(parseInt(btn.dataset.period));
+                };
+            });
+
+            updateReports(1);
+        }
+
+        /**
+         * Re-calculates statistics and regenerates all charts for the selected timeframe.
+         * @param {number} months - The number of months back to analyze (0 = all time).
+         */
+        function updateReports(months) {
+            const target = document.getElementById('reports-content');
+            const now = new Date();
+            let threshold;
+
+            if (months === 0) {
+                // To prevent rendering charts from 1970 (which crashes browser), find earliest actual data point
+                let earliestMs = now.getTime();
+                ['harvest', 'sales', 'costs', 'stock_adjustments'].forEach(store => {
+                    state[store].forEach(item => {
+                        const d = new Date(item.date).getTime();
+                        if (d < earliestMs) earliestMs = d;
+                    });
+                });
+                threshold = new Date(earliestMs);
+                threshold.setHours(0, 0, 0, 0);
+            } else {
+                threshold = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
+            }
+
+            // Filter historical data by threshold date
+            const harvest = state.harvest.filter(h => new Date(h.date) >= threshold);
+            const sales = state.sales.filter(s => new Date(s.date) >= threshold);
+            const costs = state.costs.filter(c => new Date(c.date) >= threshold);
+            const days = Math.max(1, Math.ceil((now - threshold) / (1000 * 60 * 60 * 24)));
+
+            // Aggregate totals
+            const totalColl = harvest.reduce((sum, h) => sum + h.count, 0);
+            const totalSold = sales.reduce((sum, s) => sum + s.count, 0);
+            const totalRev = sales.reduce((sum, s) => sum + s.price, 0);
+            const totalCost = costs.reduce((sum, c) => sum + c.amount, 0);
+
+            // Calculate distributions for pie charts
+            const salesDist = { sale: 0, gift: 0, own: 0 };
+            sales.forEach(s => salesDist[s.type]++);
+
+            const costsDist = { food: 0, litter: 0, medicine: 0, others: 0 };
+            costs.forEach(c => costsDist[c.category] += c.amount);
+
+            target.innerHTML = `
+                <div class="card stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${totalColl}</div>
+                        <div class="stat-label">${t('harv')}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${(totalColl / days).toFixed(1)}</div>
+                        <div class="stat-label">${t('da')}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${sales.length}</div>
+                        <div class="stat-label">${t('nav_sale')}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalSold}</div>
+                        <div class="stat-label">${t('es')}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalRev.toFixed(1)}€</div>
+                        <div class="stat-label">${t('rev')}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${totalCost.toFixed(1)}€</div>
+                        <div class="stat-label">${t('cost')}</div>
+                    </div>
+                    <div class="stat-card" style="grid-column: span 2; background: #f0fff0;">
+                        <div class="stat-value" style="font-size: 1.8rem">${(totalRev - totalCost).toFixed(2)}€</div>
+                        <div class="stat-label">${t('np')}</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="stat-label text-center" style="margin-bottom: 1rem">${t('tr_es')}</h3>
+                    <div class="chart-container"><canvas id="stock-trend"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="stat-label text-center" style="margin-bottom: 1rem">${t('tr_he')}</h3>
+                    <div class="chart-container"><canvas id="harvest-trend"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="stat-label text-center" style="margin-bottom: 1rem">${t('tr_sv')}</h3>
+                    <div class="chart-container"><canvas id="sales-trend"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="stat-label text-center" style="margin-bottom: 1rem">${t('tr_rf')}</h3>
+                    <div class="chart-container"><canvas id="revenue-trend"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="stat-label text-center" style="margin-bottom: 1rem">${t('tr_pc')}</h3>
+                    <div class="chart-container"><canvas id="costs-trend"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="stat-label text-center" style="margin-bottom: 1rem">${t('tr_np')}</h3>
+                    <div class="chart-container"><canvas id="profit-trend"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="stat-label text-center" style="margin-bottom: 1rem">${t('sd')}</h3>
+                    <div class="chart-container"><canvas id="sales-pie"></canvas></div>
+                </div>
+
+                <div class="card">
+                    <h3 class="stat-label text-center" style="margin-bottom: 1rem">${t('cd')}</h3>
+                    <div class="chart-container"><canvas id="costs-pie"></canvas></div>
+                </div>
+            `;
+
+
+            // ================= CHART RENDERERS ================= //
+
+            if (window.ChartDataLabels) {
+                try { Chart.register(ChartDataLabels); } catch (e) { }
+            }
+
+            /** Configurator for pie charts */
+            const getPieOptions = (unit) => ({
+                plugins: {
+                    legend: { position: 'bottom' },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold' },
+                        formatter: (value) => value > 0 ? `${value}${unit}` : ''
+                    }
+                }
+            });
+
+            // Distributions (Doughnut & Pie)
+            new Chart(document.getElementById('sales-pie'), {
+                type: 'doughnut',
+                data: {
+                    labels: [t('sale'), t('gift'), t('own')],
+                    datasets: [{
+                        data: [salesDist.sale, salesDist.gift, salesDist.own],
+                        backgroundColor: ['#2d5a27', '#f4c430', '#007bff']
+                    }]
+                },
+                options: getPieOptions(' ' + t('eggs'))
+            });
+
+            new Chart(document.getElementById('costs-pie'), {
+                type: 'pie',
+                data: {
+                    labels: [t('food'), t('lit'), t('med'), t('oth')],
+                    datasets: [{
+                        data: [costsDist.food, costsDist.litter, costsDist.medicine, costsDist.others],
+                        backgroundColor: ['#2d5a27', '#dc3545', '#f4c430', '#007bff']
+                    }]
+                },
+                options: getPieOptions('€')
+            });
+
+            // ================= TRENDLINE RENDERING LOGIC ================= //
+
+            const daysSpan = Math.max(1, Math.ceil((now - threshold) / (1000 * 60 * 60 * 24)));
+            let groupType = 'day';
+            if (daysSpan > 90 && daysSpan <= 366) groupType = 'week';
+            else if (daysSpan > 366) groupType = 'month';
+
+            // Normalize dates to bucketing resolution
+            const normalize = (d) => {
+                const dt = new Date(d);
+                if (groupType === 'month') return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+                if (groupType === 'week') {
+                    const day = dt.getDay() || 7;
+                    dt.setDate(dt.getDate() - day + 1);
+                    return dt.toLocaleDateString('sv');
+                }
+                return dt.toLocaleDateString('sv');
+            };
+
+            /**
+             * Aggregates data by date bucket and plots a standard trendline.
+             */
+            function groupAndChart(id, data, dateKey, valueKey, label, color, unit, start, end) {
+                const grouped = {};
+
+                // Initialize the full date range with zeroes to prevent broken lines
+                let curr = new Date(start);
+                while (curr <= end) {
+                    grouped[normalize(curr)] = 0;
+                    curr.setDate(curr.getDate() + 1);
+                }
+
+                // Sum up actual values
+                data.forEach(item => {
+                    const d = normalize(item[dateKey]);
+                    if (grouped.hasOwnProperty(d)) grouped[d] += (item[valueKey] || 0);
+                });
+
+                const labels = Object.keys(grouped).sort();
+                const values = labels.map(l => grouped[l]);
+                const displayLabels = labels.map(l => {
+                    if (groupType === 'month') return new Date(l + "-01").toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+                    return new Date(l).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                });
+
+                new Chart(document.getElementById(id), {
+                    type: 'line',
+                    data: {
+                        labels: displayLabels,
+
+                        datasets: [{ label, data: values, borderColor: color, tension: 0.3, fill: false, borderWidth: 3, pointRadius: 2 }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { display: false },
+                            datalabels: { display: false },
+                            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.formattedValue}${unit}` } }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: (val) => val + unit }
+                            }
+                        }
+                    }
+                });
+            }
+
+            groupAndChart('harvest-trend', harvest, 'date', 'count', t('tr_he').replace('Trend: ', ''), '#2d5a27', ' ' + t('eggs'), threshold, now);
+            groupAndChart('sales-trend', sales, 'date', 'count', t('tr_sv').replace('Trend: ', ''), '#f4c430', ' ' + t('eggs'), threshold, now);
+            groupAndChart('revenue-trend', sales, 'date', 'price', t('rev'), '#2d5a27', '€', threshold, now);
+            groupAndChart('costs-trend', costs, 'date', 'amount', t('cost'), '#dc3545', '€', threshold, now);
+
+            /** 
+             * Cumulative Stock Trend
+             * The stock is cumulative, so to know the stock at the start of the threshold,
+             * we must first trace back all history before the threshold date.
+             */
+            const stockGrouped = {};
+            let initialStock = 0;
+            state.harvest.forEach(h => { if (new Date(h.date) < threshold) initialStock += h.count; });
+            state.sales.forEach(s => { if (new Date(s.date) < threshold) initialStock -= s.count; });
+            state.stock_adjustments.forEach(a => { if (new Date(a.date) < threshold) initialStock += a.amount; });
+
+            let currS = new Date(threshold);
+            let currentStock = initialStock;
+
+            // Advance day by day to perfectly calculate rolling stock, overriding the bucket string
+            // so each bucket receives the closing stock day value.
+            while (currS <= now) {
+                const dailyKey = currS.toLocaleDateString('sv');
+                const bucketKey = normalize(currS);
+
+                const hToday = state.harvest.filter(h => new Date(h.date).toLocaleDateString('sv') === dailyKey).reduce((s, i) => s + i.count, 0);
+                const sToday = state.sales.filter(s => new Date(s.date).toLocaleDateString('sv') === dailyKey).reduce((s, i) => s + i.count, 0);
+                const aToday = state.stock_adjustments.filter(a => new Date(a.date).toLocaleDateString('sv') === dailyKey).reduce((s, i) => s + i.amount, 0);
+
+                currentStock += (hToday - sToday + aToday);
+                stockGrouped[bucketKey] = currentStock;
+
+                currS.setDate(currS.getDate() + 1);
+            }
+
+            const stLabels = Object.keys(stockGrouped).sort();
+            const stDisplayLabels = stLabels.map(l => {
+                if (groupType === 'month') return new Date(l + "-01").toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+                return new Date(l).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            });
+
+            new Chart(document.getElementById('stock-trend'), {
+                type: 'line',
+                data: {
+                    labels: stDisplayLabels,
+                    datasets: [{ label: t('in_stock'), data: stLabels.map(l => stockGrouped[l]), borderColor: '#2d5a27', backgroundColor: 'rgba(45, 90, 39, 0.1)', fill: true, tension: 0.1, borderWidth: 3 }]
+                },
+                options: {
+                    plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: { callbacks: { label: (ctx) => `Stock: ${ctx.formattedValue} ${t('eggs')}` } } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: (val) => val + ' ' + t('eggs') } } }
+                }
+            });
+
+            /** 
+             * Profit Trend Logic (Revenues - Costs on a rolling basis)
+             */
+            const profitGrouped = {};
+            let currP = new Date(threshold);
+
+            // Initialize graph points
+            while (currP <= now) {
+                profitGrouped[normalize(currP)] = 0;
+                currP.setDate(currP.getDate() + 1);
+            }
+
+            // Add revenues and subtract costs
+            sales.forEach(s => { const d = normalize(s.date); if (profitGrouped.hasOwnProperty(d)) profitGrouped[d] += s.price; });
+            costs.forEach(c => { const d = normalize(c.date); if (profitGrouped.hasOwnProperty(d)) profitGrouped[d] -= c.amount; });
+
+            const pLabels = Object.keys(profitGrouped).sort();
+            const pValues = pLabels.map(l => profitGrouped[l]);
+            const pDisplayLabels = pLabels.map(l => {
+                if (groupType === 'month') return new Date(l + "-01").toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+                return new Date(l).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            });
+
+            new Chart(document.getElementById('profit-trend'), {
+                type: 'line',
+                data: {
+                    labels: pDisplayLabels,
+                    datasets: [{ label: t('np'), data: pValues, borderColor: '#007bff', tension: 0.3, fill: false, borderWidth: 3 }]
+                },
+                options: {
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.formattedValue}€` } }
+                    },
+                    scales: { y: { ticks: { callback: (val) => val + '€' } } }
+                }
+            });
+        }
+
+        /** Renders the Settings Dashboard. */
+        function renderSettings() {
+            mainContent.innerHTML = `
+                <div class="view-content">
+                    <header class="view-header">
+                        <h1 class="view-title">${t('set_t')}</h1>
+                        <p class="view-subtitle">${t('set_s')}</p>
+                    </header>
+
+                    <div class="card">
+                        <h3 class="stat-label" style="margin-bottom: 0.5rem">${t('lang')}</h3>
+                        <div class="form-group">
+                            <select id="lang-selector" class="form-input">
+                                <option value="en" ${state.settings.lang === 'en' ? 'selected' : ''}>${t('en')}</option>
+                                <option value="fr" ${state.settings.lang === 'fr' ? 'selected' : ''}>${t('fr')}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="stat-label" style="margin-bottom: 1rem">${t('dm')}</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem">
+                            <button class="btn btn-secondary btn-block" onclick="exportData()"><i data-lucide="download"></i> ${t('exp')}</button>
+                            <button class="btn btn-secondary btn-block" onclick="importData()"><i data-lucide="upload"></i> ${t('imp')}</button>
+                        </div>
+                        <button class="btn btn-block" style="margin-top: 0.5rem; background: #fff0f0; color: #d63031; border: 1px solid #fab1a0" onclick="resetAllData()"><i data-lucide="trash-2"></i> ${t('reset_all')}</button>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 2rem; color: #999; font-size: 0.8rem;">
+                        ${t('made_by')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('lang-selector').onchange = (e) => {
+                state.settings.lang = e.target.value;
+                saveSettings();
+                renderView(currentView);
+            };
+        }
+
+        /**
+         * =========================================
+         * INITIALIZATION & SERVICE WORKER
+         * =========================================
+         */
+
+        // Service Worker setup for offline capabilities and PWA compliance
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then((reg) => {
+                    console.log('SW Registered successfully', reg);
+                });
+            });
+        }
+
+        // Initialize the app by opening the Home View
+        renderView('home');
+    </script>
+</body>
+
+</html>
