@@ -95,3 +95,107 @@ authenticated user ID. The app source code is public, but **your flock data is a
 ---
 
 *Created with 🥚 by schrammax*
+
+---
+
+# 🥚 EggsSharer App
+
+**EggsSharer** est une Progressive Web App (PWA) gratuite et synchronisée dans le cloud, 
+conçue pour les propriétaires de poules pondeuses souhaitant gérer facilement la production 
+d'œufs de leur poulailler, suivre leurs clients et surveiller leurs finances — depuis n'importe 
+quel appareil.
+
+URL de l'application : [EggsSharerApp](https://schramax.github.io/EggsSharerApp/EggsSharer.html)
+
+---
+
+## ✨ Fonctionnalités
+
+### 🏠 Tableau de bord
+- Vue d'ensemble du stock d'œufs actuel, du total des ventes et du solde net.
+- Boutons d'accès rapide aux tâches les plus courantes.
+
+### 🥚 Suivi des récoltes
+- Enregistrez la collecte quotidienne d'œufs avec la date et la quantité.
+- Mise à jour automatique si une récolte est déjà enregistrée pour un jour donné (pas de doublons !).
+- Historique des récoltes avec possibilité de suppression.
+
+### 👥 Gestion des clients (CRM)
+- Maintenez un répertoire de clients et voisins avec nom, téléphone et notes.
+
+### 🛒 Gestion des ventes
+- Enregistrez des ventes, des dons ou des transactions à usage personnel.
+- Partage WhatsApp en un clic avec un message pré-rempli pour chaque vente.
+- Suivi des modes de paiement (Bancontact, Payconiq, Espèces...).
+
+### 💶 Suivi des coûts
+- Enregistrez les dépenses du poulailler par catégorie (Nourriture, Litière, Médicaments, Autres).
+
+### 📊 Rapports & Analyses
+- Graphiques interactifs alimentés par Chart.js.
+- Filtrage des données par Mois dernier, 3 Mois, L'année dernière ou Toujours.
+- Tendances du niveau de stock, du volume de récolte, des revenus, des coûts et du bénéfice net.
+- Graphiques en camembert pour la répartition des ventes et des coûts.
+
+### ⚙️ Paramètres
+- **Langue :** Basculez instantanément entre 🇬🇧 l'anglais et 🇫🇷 le français.
+- **Paramètres du compte :** Consultez votre e-mail, déconnectez-vous ou supprimez définitivement votre compte.
+- **Gestion des données :** Exportez/importez les données en sauvegarde JSON, réinitialisez toutes les données.
+- **Forcer la mise à jour :** Bouton en un clic pour ignorer le cache et charger la dernière version.
+
+---
+
+## ☁️ Synchronisation dans le cloud (Firebase)
+
+EggsSharer utilise **Firebase Authentication** et **Firebase Realtime Database** pour 
+synchroniser en toute sécurité les données de votre poulailler sur tous vos appareils en 
+temps réel.
+
+- Chaque membre de la famille se connecte avec le même e-mail et mot de passe partagés pour accéder à un ensemble de données commun.
+- Les données sont stockées dans une base de données cloud privée et isolée par utilisateur — personne d'autre ne peut voir vos données.
+- L'application fonctionne entièrement **hors ligne** et se synchronise automatiquement lors de la reconnexion.
+- Plusieurs familles ou poulaillers indépendants peuvent chacun créer leur propre compte séparé.
+
+---
+
+## 📱 Installation (en tant que PWA)
+
+**iPhone (iOS — Safari uniquement) :**
+1. Visitez l'URL de l'application dans **Safari**.
+2. Appuyez sur le bouton **Partager** → **Sur l'écran d'accueil**.
+
+**Android (Chrome) :**
+1. Visitez l'URL de l'application dans **Chrome**.
+2. Appuyez sur le **menu à trois points** → **Installer l'application** (ou "Ajouter à l'écran d'accueil").
+
+URL de l'application : [EggsSharerApp](https://schramax.github.io/EggsSharerApp/EggsSharer.html)
+
+Une fois installée, l'icône de l'application apparaît sur votre écran d'accueil et se lance 
+en mode plein écran, comme une application native !
+
+---
+
+## 🛠️ Stack Technique
+
+| Couche | Technologie |
+|---|---|
+| Frontend | HTML, CSS, JavaScript Vanilla |
+| Graphiques | [Chart.js](https://www.chartjs.org/) + chartjs-plugin-datalabels |
+| Icônes | [Lucide Icons](https://lucide.dev/) |
+| Sync Cloud | [Firebase Realtime Database](https://firebase.google.com/) |
+| Authentification | [Firebase Authentication](https://firebase.google.com/) |
+| Hébergement | [GitHub Pages](https://pages.github.com/) |
+| Support hors ligne | Service Worker (PWA) |
+
+---
+
+## 🔒 Confidentialité
+
+Toutes les données utilisateur sont stockées exclusivement dans votre compte Firebase privé, 
+isolé par identifiant utilisateur authentifié. Le code source de l'application est public, 
+mais **les données de votre poulailler restent toujours privées**.
+
+---
+
+*Créé avec 🥚 par schrammax*
+
