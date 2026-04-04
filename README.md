@@ -94,7 +94,7 @@ authenticated user ID. The app source code is public, but **your flock data is a
 
 ---
 
-*Created with 🥚 by schrammax*
+*Created with 🥚 by schramax*
 
 ---
 
@@ -200,5 +200,5 @@ mais **les données de votre poulailler restent toujours privées**.
 
 ---
 
-*Créé avec 🥚 par schrammax*
+*Créé avec 🥚 par schramax*
 
