@@ -4,6 +4,8 @@
 chicken owners to effortlessly manage their flock's egg production, track customers, and 
 monitor poultry finances — all from any device.
 
+App URL: [EggsSharerApp](https://schramax.github.io/EggsSharerApp/EggsSharer.html)
+
 ---
 
 ## ✨ Features
@@ -63,6 +65,8 @@ sync your flock's data across all your devices in real time.
 **Android (Chrome):**
 1. Visit the app URL in **Chrome**.
 2. Tap the **three-dot menu** → **Install app** (or "Add to Home Screen").
+
+App URL: [EggsSharerApp](https://schramax.github.io/EggsSharerApp/EggsSharer.html)
 
 Once installed, the app icon appears on your home screen and launches in full-screen mode, 
 just like a native app!
