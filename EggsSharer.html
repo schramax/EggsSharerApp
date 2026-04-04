@@ -363,7 +363,12 @@
                 tr_es: "Trend: Egg Stock Level", tr_he: "Trend: Harvested Eggs", tr_sv: "Trend: Sales Volume", tr_rf: "Trend: Revenue Flow", tr_pc: "Trend: Poultry Costs", tr_np: "Trend: Net Profit", sd: "Sales Distribution", cd: "Cost Distribution",
                 set_t: "Settings", set_s: "Manage your preferences and data", lang: "Language", en: "English", fr: "Français",
                 dm: "Data Management", exp: "Export", imp: "Import", reset_all: "Reset All Data", made_by: "Created with 🥚 by schrammax", prompt: "Enter value modification +/-",
-                login_title: "Sign In to Sync", login_sub: "Access your shared flock data.", email: "Email Address", password: "Password", btn_login: "Login", btn_signup: "Create Account", logout: "Log Out"
+                login_title: "Sign In to Sync", login_sub: "Access your shared flock data.", email: "Email Address", password: "Password", btn_login: "Login", btn_signup: "Create Account", logout: "Log Out",
+                confirm_overwrite: "Are you sure? This will OVERWRITE your current data with the backup file.", alert_restored: "Data restored successfully!", alert_invalid_backup: "Invalid backup file.",
+                confirm_reset_all: "⚠️ WARNING: This will delete ALL data (Production, Sales, Consumers, Costs, etc.). Are you sure?", alert_reset_success: "All data has been reset.",
+                confirm_reset_tab: "⚠️ Are you sure you want to delete all {tab} data? This cannot be undone.", confirm_delete: "Delete this entry?", alert_sel_cons: "Select a consumer",
+                alert_not_supported: "Sharing not supported on this browser. Message copied to clipboard", compte: "Account Settings", del_acc: "Delete Account",
+                confirm_del_acc: "Are you sure you want to delete your account? This will erase your cloud data entirely. This action is irreversible.", alert_reauth: "Please log out and log back in before deleting your account for security reasons.", force_refresh: "Force App Update"
             },
             fr: {
                 nav_home: "Accueil", nav_harv: "Récolte", nav_cons: "Clients", nav_sale: "Ventes", nav_cost: "Coûts", nav_rep: "Rapports", nav_set: "Paramètres",
@@ -382,7 +387,12 @@
                 tr_es: "Tendance : Niveau de Stock", tr_he: "Tendance : Œufs Récoltés", tr_sv: "Tendance : Volume des Ventes", tr_rf: "Tendance : Flux de Revenus", tr_pc: "Tendance : Coûts du Poulailler", tr_np: "Tendance : Bénéfice Net", sd: "Répartition des Ventes", cd: "Répartition des Coûts",
                 set_t: "Paramètres", set_s: "Gérez vos préférences et vos données", lang: "Langue", en: "English", fr: "Français",
                 dm: "Gestion des Données", exp: "Exporter", imp: "Importer", reset_all: "Réinitialiser tout", made_by: "Créé avec 🥚 par schrammax", prompt: "Entrez la modification +/-",
-                login_title: "Connexion à votre Poulailler", login_sub: "Accédez à vos données partagées.", email: "Adresse Email", password: "Mot de Passe", btn_login: "Se Connecter", btn_signup: "Créer un Compte", logout: "Déconnexion"
+                login_title: "Connexion à votre Poulailler", login_sub: "Accédez à vos données partagées.", email: "Adresse Email", password: "Mot de Passe", btn_login: "Se Connecter", btn_signup: "Créer un Compte", logout: "Déconnexion",
+                confirm_overwrite: "Êtes-vous sûr ? Cela va ÉCRASER vos données actuelles avec le fichier de sauvegarde.", alert_restored: "Données restaurées avec succès !", alert_invalid_backup: "Fichier de sauvegarde invalide.",
+                confirm_reset_all: "⚠️ ATTENTION : Cela supprimera TOUTES les données (Production, Ventes, Clients, Coûts, etc.). Êtes-vous sûr ?", alert_reset_success: "Toutes les données ont été réinitialisées.",
+                confirm_reset_tab: "⚠️ Êtes-vous sûr de vouloir supprimer toutes les données de {tab} ? Cette action est irréversible.", confirm_delete: "Supprimer cette entrée ?", alert_sel_cons: "Sélectionnez un client",
+                alert_not_supported: "Partage non supporté par ce navigateur. Message copié.", compte: "Paramètres du Compte", del_acc: "Supprimer le Compte",
+                confirm_del_acc: "Êtes-vous sûr de vouloir supprimer votre compte ? Cela effacera entièrement vos données dans le cloud. Cette action est irréversible.", alert_reauth: "Veuillez vous déconnecter et vous reconnecter avant de supprimer votre compte pour des raisons de sécurité.", force_refresh: "Forcer la mise à jour de l'app"
             }
         };
 
@@ -459,17 +469,17 @@
                 reader.onload = (event) => {
                     try {
                         const imported = JSON.parse(event.target.result);
-                        if (confirm('Are you sure? This will OVERWRITE your current data with the backup file.')) {
+                        if (confirm(t('confirm_overwrite'))) {
                             STORES.forEach(s => {
                                 if (imported[s]) {
                                     state[s] = imported[s];
                                     save(s);
                                 }
                             });
-                            alert('Data restored successfully!');
+                            alert(t('alert_restored'));
                             window.location.reload();
                         }
-                    } catch (err) { alert('Invalid backup file.'); }
+                    } catch (err) { alert(t('alert_invalid_backup')); }
                 };
                 reader.readAsText(file);
             };
@@ -478,28 +488,34 @@
 
         /** WARNING: Hard reset of the entire application state. */
         function resetAllData() {
-            if (confirm('⚠️ WARNING: This will delete ALL data (Production, Sales, Consumers, Costs, etc.). Are you sure?')) {
+            if (confirm(t('confirm_reset_all'))) {
                 STORES.forEach(s => {
                     state[s] = [];
                     save(s);
                 });
-                alert('All data has been reset.');
+                if (state.currentUser && dbRef) {
+                    STORES.forEach(s => dbRef.child(s).set([]));
+                }
+                alert(t('alert_reset_success'));
                 window.location.reload();
             }
         }
 
         /** Resets an individual tab's list of items. */
         function resetTabData(tab) {
-            if (confirm(`⚠️ Are you sure you want to delete all ${tab} data? This cannot be undone.`)) {
+            if (confirm(t('confirm_reset_tab').replace('{tab}', tab))) {
                 state[tab] = [];
                 save(tab);
+                if (state.currentUser && dbRef) {
+                    dbRef.child(tab).set([]);
+                }
                 renderView(tab);
             }
         }
 
         /** General purpose function to delete an item from a store by its unique ID. */
         function deleteItem(store, id) {
-            if (confirm('Delete this entry?')) {
+            if (confirm(t('confirm_delete'))) {
                 state[store] = state[store].filter(item => item.id !== id);
                 save(store);
                 const activeNav = document.querySelector('.nav-item.active');
@@ -623,6 +639,12 @@
         function renderLogin() {
             mainContent.innerHTML = `
                 <div class="view-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height: 80vh">
+                    <div style="position: absolute; top: 1rem; right: 1rem;">
+                        <select id="login-lang-selector" class="form-input" style="width: auto; font-size: 0.8rem; padding: 0.3rem 0.6rem">
+                            <option value="en" ${state.settings.lang === 'en' ? 'selected' : ''}>🇬🇧 EN</option>
+                            <option value="fr" ${state.settings.lang === 'fr' ? 'selected' : ''}>🇫🇷 FR</option>
+                        </select>
+                    </div>
                     <div class="card" style="width: 100%; max-width: 400px; text-align: center">
                         <i data-lucide="cloud" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem"></i>
                         <h2 class="view-title">${t('login_title')}</h2>
@@ -640,8 +662,17 @@
                         <button class="btn btn-primary btn-block" style="margin-bottom: 0.5rem" onclick="login()">${t('btn_login')}</button>
                         <button class="btn btn-secondary btn-block" onclick="signup()">${t('btn_signup')}</button>
                     </div>
+                    <div style="text-align: center; margin-top: 1.5rem; color: #999; font-size: 0.8rem;">
+                        ${t('made_by')}
+                    </div>
                 </div>
             `;
+
+            document.getElementById('login-lang-selector').onchange = (e) => {
+                state.settings.lang = e.target.value;
+                saveSettings();
+                renderLogin(); // Re-render login page in new language
+            };
             
             window.login = () => {
                 const e = document.getElementById('l-email').value;
@@ -772,11 +803,15 @@
 
             document.getElementById('harvest-form').onsubmit = (e) => {
                 e.preventDefault();
-                state.harvest.push({
-                    id: Date.now().toString(),
-                    date: document.getElementById('h-date').value,
-                    count: parseInt(document.getElementById('h-count').value)
-                });
+                const date = document.getElementById('h-date').value;
+                const count = parseInt(document.getElementById('h-count').value);
+                const existing = state.harvest.find(h => h.date === date);
+                if (existing) {
+                    // Update existing entry for that date instead of adding a duplicate
+                    existing.count = count;
+                } else {
+                    state.harvest.push({ id: Date.now().toString(), date, count });
+                }
                 save('harvest');
                 renderView('harvest');
             };
@@ -986,7 +1021,7 @@
 
             window.submitSale = (method) => {
                 const consumerId = document.getElementById('s-consumer').value;
-                if (!consumerId) return alert('Select a consumer');
+                if (!consumerId) return alert(t('alert_sel_cons'));
                 const sale = {
                     id: Date.now().toString(),
                     date: document.getElementById('s-date').value,
@@ -1018,8 +1053,7 @@
                 if (navigator.share) {
                     navigator.share({ text: msg }).catch(() => { });
                 } else {
-                    const alertMsg = (state.settings.lang === 'fr') ? 'Partage non supporté par ce navigateur. Message copié.' : 'Sharing not supported on this browser. Message copied to clipboard';
-                    alert(alertMsg);
+                    alert(t('alert_not_supported'));
                     navigator.clipboard.writeText(msg);
                 }
             }
@@ -1476,13 +1510,23 @@
                     </div>
 
                     <div class="card">
+                        <h3 class="stat-label" style="margin-bottom: 1rem">${t('compte')}</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; word-break: break-all;">
+                            <i data-lucide="user" style="width:14px;height:14px;vertical-align:middle"></i>
+                            ${state.currentUser ? state.currentUser.email : ''}
+                        </p>
+                        <button class="btn btn-block" style="margin-bottom: 0.5rem; background: #fdfbf7; color: var(--primary); border: 1px solid var(--border)" onclick="firebase.auth().signOut()"><i data-lucide="log-out"></i> ${t('logout')}</button>
+                        <button class="btn btn-block" style="margin-top: 0.25rem; background: #fff0f0; color: #d63031; border: 1px solid #fab1a0" onclick="deleteAccount()"><i data-lucide="user-x"></i> ${t('del_acc')}</button>
+                    </div>
+
+                    <div class="card">
                         <h3 class="stat-label" style="margin-bottom: 1rem">${t('dm')}</h3>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem">
                             <button class="btn btn-secondary btn-block" onclick="exportData()"><i data-lucide="download"></i> ${t('exp')}</button>
                             <button class="btn btn-secondary btn-block" onclick="importData()"><i data-lucide="upload"></i> ${t('imp')}</button>
                         </div>
                         <button class="btn btn-block" style="margin-top: 0.5rem; background: #fff0f0; color: #d63031; border: 1px solid #fab1a0" onclick="resetAllData()"><i data-lucide="trash-2"></i> ${t('reset_all')}</button>
-                        <button class="btn btn-block" style="margin-top: 0.5rem; background: #fdfbf7; color: var(--primary); border: 1px solid var(--border)" onclick="firebase.auth().signOut()"><i data-lucide="log-out"></i> ${t('logout')}</button>
+                        <button class="btn btn-block" style="margin-top: 0.5rem; background: #f0f8ff; color: #0084c7; border: 1px solid #b3d9f5" onclick="forceRefresh()"><i data-lucide="refresh-cw"></i> ${t('force_refresh')}</button>
                     </div>
 
                     <div style="text-align: center; margin-top: 2rem; color: #999; font-size: 0.8rem;">
@@ -1495,6 +1539,38 @@
                 state.settings.lang = e.target.value;
                 saveSettings();
                 renderView(currentView);
+            };
+
+            /** Delete account: wipe DB data then remove auth account */
+            window.deleteAccount = () => {
+                if (!confirm(t('confirm_del_acc'))) return;
+                const user = firebase.auth().currentUser;
+                if (!user) return;
+                // Remove cloud data first, then delete the auth account
+                const userDbRef = firebase.database().ref('users/' + user.uid);
+                userDbRef.remove().then(() => {
+                    return user.delete();
+                }).then(() => {
+                    // Auth state change will redirect to login
+                }).catch(err => {
+                    if (err.code === 'auth/requires-recent-login') {
+                        alert(t('alert_reauth'));
+                    } else {
+                        alert(err.message);
+                    }
+                });
+            };
+
+            /** Hard refresh: unregister service worker and force reload */
+            window.forceRefresh = () => {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(regs => {
+                        regs.forEach(reg => reg.unregister());
+                        window.location.reload(true);
+                    });
+                } else {
+                    window.location.reload(true);
+                }
             };
         }
 
