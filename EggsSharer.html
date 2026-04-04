@@ -344,7 +344,6 @@
          * Application State is persisted entirely in the browser's localStorage.
          * The STORES array defines the keys used for saving/loading data.
          */
-        const APP_VERSION = '1.5.0';
         const STORES = ['harvest', 'consumers', 'sales', 'costs', 'stock_adjustments'];
         const I18N = {
             en: {
@@ -1532,7 +1531,7 @@
 
                     <div style="text-align: center; margin-top: 2rem; color: #999; font-size: 0.8rem;">
                         ${t('made_by')}<br>
-                        <span style="font-size: 0.75rem; opacity: 0.7;">v${APP_VERSION}</span>
+                        <span id="app-version-display" style="font-size: 0.75rem; opacity: 0.7;">v...</span>
                     </div>
                 </div>
             `;
@@ -1542,6 +1541,17 @@
                 saveSettings();
                 renderView(currentView);
             };
+
+            // Dynamically read version from the active Service Worker cache name
+            if ('caches' in window) {
+                caches.keys().then(keys => {
+                    const swCache = keys.find(k => k.startsWith('eggs-sharer-'));
+                    const versionEl = document.getElementById('app-version-display');
+                    if (versionEl) {
+                        versionEl.textContent = swCache ? swCache.replace('eggs-sharer-', 'v') : 'v0';
+                    }
+                });
+            }
 
             /** Delete account: wipe DB data then remove auth account */
             window.deleteAccount = () => {
