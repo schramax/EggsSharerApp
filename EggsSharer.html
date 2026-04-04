@@ -1548,7 +1548,7 @@
                     const swCache = keys.find(k => k.startsWith('eggs-sharer-'));
                     const versionEl = document.getElementById('app-version-display');
                     if (versionEl) {
-                        versionEl.textContent = swCache ? swCache.replace('eggs-sharer-', 'v') : 'v0';
+                        versionEl.textContent = swCache ? swCache.replace('eggs-sharer-', '') : 'v0';
                     }
                 });
             }
