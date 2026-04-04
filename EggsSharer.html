@@ -362,7 +362,7 @@
                 es: "Eggs Sold", rev: "Revenue", cost: "Cost", np: "Net Profit",
                 tr_es: "Trend: Egg Stock Level", tr_he: "Trend: Harvested Eggs", tr_sv: "Trend: Sales Volume", tr_rf: "Trend: Revenue Flow", tr_pc: "Trend: Poultry Costs", tr_np: "Trend: Net Profit", sd: "Sales Distribution", cd: "Cost Distribution",
                 set_t: "Settings", set_s: "Manage your preferences and data", lang: "Language", en: "English", fr: "Français",
-                dm: "Data Management", exp: "Export", imp: "Import", reset_all: "Reset All Data", made_by: "Created with 🥚 by schramax", prompt: "Enter value modification +/-",
+                dm: "Data Management", exp: "Export", imp: "Import", reset_all: "Reset All Data", made_by: "Created with 🥚 by schrammax", prompt: "Enter value modification +/-",
                 login_title: "Sign In to Sync", login_sub: "Access your shared flock data.", email: "Email Address", password: "Password", btn_login: "Login", btn_signup: "Create Account", logout: "Log Out",
                 confirm_overwrite: "Are you sure? This will OVERWRITE your current data with the backup file.", alert_restored: "Data restored successfully!", alert_invalid_backup: "Invalid backup file.",
                 confirm_reset_all: "⚠️ WARNING: This will delete ALL data (Production, Sales, Consumers, Costs, etc.). Are you sure?", alert_reset_success: "All data has been reset.",
@@ -386,7 +386,7 @@
                 es: "Œufs Vendus", rev: "Revenus", cost: "Coûts", np: "Bénéfice Net",
                 tr_es: "Tendance : Niveau de Stock", tr_he: "Tendance : Œufs Récoltés", tr_sv: "Tendance : Volume des Ventes", tr_rf: "Tendance : Flux de Revenus", tr_pc: "Tendance : Coûts du Poulailler", tr_np: "Tendance : Bénéfice Net", sd: "Répartition des Ventes", cd: "Répartition des Coûts",
                 set_t: "Paramètres", set_s: "Gérez vos préférences et vos données", lang: "Langue", en: "English", fr: "Français",
-                dm: "Gestion des Données", exp: "Exporter", imp: "Importer", reset_all: "Réinitialiser tout", made_by: "Créé avec 🥚 par schramax", prompt: "Entrez la modification +/-",
+                dm: "Gestion des Données", exp: "Exporter", imp: "Importer", reset_all: "Réinitialiser tout", made_by: "Créé avec 🥚 par schrammax", prompt: "Entrez la modification +/-",
                 login_title: "Connexion à votre Poulailler", login_sub: "Accédez à vos données partagées.", email: "Adresse Email", password: "Mot de Passe", btn_login: "Se Connecter", btn_signup: "Créer un Compte", logout: "Déconnexion",
                 confirm_overwrite: "Êtes-vous sûr ? Cela va ÉCRASER vos données actuelles avec le fichier de sauvegarde.", alert_restored: "Données restaurées avec succès !", alert_invalid_backup: "Fichier de sauvegarde invalide.",
                 confirm_reset_all: "⚠️ ATTENTION : Cela supprimera TOUTES les données (Production, Ventes, Clients, Coûts, etc.). Êtes-vous sûr ?", alert_reset_success: "Toutes les données ont été réinitialisées.",
@@ -1573,16 +1573,23 @@
                 });
             };
 
-            /** Hard refresh: unregister service worker and force reload */
+            /** Hard refresh: unregister service worker, clear all caches, and force reload */
             window.forceRefresh = () => {
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.getRegistrations().then(regs => {
-                        regs.forEach(reg => reg.unregister());
-                        window.location.reload(true);
-                    });
-                } else {
+                const clearAll = async () => {
+                    // 1. Unregister all Service Workers
+                    if ('serviceWorker' in navigator) {
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        await Promise.all(regs.map(reg => reg.unregister()));
+                    }
+                    // 2. Delete ALL SW caches (prevents stale HTTP cache re-serving old sw.js)
+                    if ('caches' in window) {
+                        const keys = await caches.keys();
+                        await Promise.all(keys.map(key => caches.delete(key)));
+                    }
+                    // 3. Hard reload — browser now must fetch everything fresh from network
                     window.location.reload(true);
-                }
+                };
+                clearAll();
             };
         }
 
