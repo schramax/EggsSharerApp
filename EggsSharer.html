@@ -1166,7 +1166,18 @@
                 };
             });
 
-            updateReports(1);
+            // Auto-select "Ever" if data doesn't cover a full month (31 days)
+            const allDates = [...state.harvest, ...state.sales, ...state.costs]
+                .map(item => new Date(item.date).getTime())
+                .filter(d => !isNaN(d));
+            const oldestMs = allDates.length ? Math.min(...allDates) : Date.now();
+            const dataSpanDays = Math.ceil((Date.now() - oldestMs) / (1000 * 60 * 60 * 24));
+            const defaultPeriod = dataSpanDays < 31 ? 0 : 1;
+
+            // Activate the correct default button
+            filterBtns.forEach(b => b.classList.remove('active'));
+            document.querySelector(`.filter-btn[data-period="${defaultPeriod}"]`).classList.add('active');
+            updateReports(defaultPeriod);
         }
 
         /**
@@ -1205,9 +1216,9 @@
             const totalRev = sales.reduce((sum, s) => sum + s.price, 0);
             const totalCost = costs.reduce((sum, c) => sum + c.amount, 0);
 
-            // Calculate distributions for pie charts
+            // Calculate distributions for pie charts — in egg volume, not transaction count
             const salesDist = { sale: 0, gift: 0, own: 0 };
-            sales.forEach(s => salesDist[s.type]++);
+            sales.forEach(s => salesDist[s.type] += (s.count || 0));
 
             const costsDist = { food: 0, litter: 0, medicine: 0, others: 0 };
             costs.forEach(c => costsDist[c.category] += c.amount);
@@ -1399,8 +1410,32 @@
 
             groupAndChart('harvest-trend', harvest, 'date', 'count', t('tr_he').replace('Trend: ', ''), '#2d5a27', ' ' + t('eggs'), threshold, now);
             groupAndChart('sales-trend', sales, 'date', 'count', t('tr_sv').replace('Trend: ', ''), '#f4c430', ' ' + t('eggs'), threshold, now);
-            groupAndChart('revenue-trend', sales, 'date', 'price', t('rev'), '#2d5a27', '€', threshold, now);
-            groupAndChart('costs-trend', costs, 'date', 'amount', t('cost'), '#dc3545', '€', threshold, now);
+
+            // ---- Cumulative Revenue Trend ----
+            (() => {
+                const revGrouped = {};
+                let curr = new Date(threshold);
+                while (curr <= now) { revGrouped[normalize(curr)] = 0; curr.setDate(curr.getDate() + 1); }
+                sales.forEach(s => { const d = normalize(s.date); if (revGrouped.hasOwnProperty(d)) revGrouped[d] += s.price; });
+                const labels = Object.keys(revGrouped).sort();
+                let cumRev = 0;
+                const values = labels.map(l => { cumRev += revGrouped[l]; return Math.round(cumRev * 100) / 100; });
+                const displayLabels = labels.map(l => groupType === 'month' ? new Date(l + '-01').toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : new Date(l).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+                new Chart(document.getElementById('revenue-trend'), { type: 'line', data: { labels: displayLabels, datasets: [{ label: t('rev'), data: values, borderColor: '#2d5a27', tension: 0.3, fill: true, backgroundColor: 'rgba(45,90,39,0.1)', borderWidth: 3, pointRadius: 2 }] }, options: { plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: { callbacks: { label: (ctx) => `${t('rev')}: ${ctx.formattedValue}€` } } }, scales: { y: { beginAtZero: true, ticks: { callback: (val) => val + '€' } } } } });
+            })();
+
+            // ---- Cumulative Costs Trend ----
+            (() => {
+                const costGrouped = {};
+                let curr = new Date(threshold);
+                while (curr <= now) { costGrouped[normalize(curr)] = 0; curr.setDate(curr.getDate() + 1); }
+                costs.forEach(c => { const d = normalize(c.date); if (costGrouped.hasOwnProperty(d)) costGrouped[d] += c.amount; });
+                const labels = Object.keys(costGrouped).sort();
+                let cumCost = 0;
+                const values = labels.map(l => { cumCost += costGrouped[l]; return Math.round(cumCost * 100) / 100; });
+                const displayLabels = labels.map(l => groupType === 'month' ? new Date(l + '-01').toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : new Date(l).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+                new Chart(document.getElementById('costs-trend'), { type: 'line', data: { labels: displayLabels, datasets: [{ label: t('cost'), data: values, borderColor: '#dc3545', tension: 0.3, fill: true, backgroundColor: 'rgba(220,53,69,0.1)', borderWidth: 3, pointRadius: 2 }] }, options: { plugins: { legend: { display: false }, datalabels: { display: false }, tooltip: { callbacks: { label: (ctx) => `${t('cost')}: ${ctx.formattedValue}€` } } }, scales: { y: { beginAtZero: true, ticks: { callback: (val) => val + '€' } } } } });
+            })();
 
             /** 
              * Cumulative Stock Trend
@@ -1450,24 +1485,28 @@
                 }
             });
 
-            /** 
-             * Profit Trend Logic (Revenues - Costs on a rolling basis)
-             */
+            // ---- Cumulative Profit Trend (cumulative Revenue minus cumulative Costs) ----
             const profitGrouped = {};
+            const revGroupedP = {};
+            const costGroupedP = {};
             let currP = new Date(threshold);
-
-            // Initialize graph points
             while (currP <= now) {
-                profitGrouped[normalize(currP)] = 0;
+                const key = normalize(currP);
+                profitGrouped[key] = 0;
+                revGroupedP[key] = 0;
+                costGroupedP[key] = 0;
                 currP.setDate(currP.getDate() + 1);
             }
-
-            // Add revenues and subtract costs
-            sales.forEach(s => { const d = normalize(s.date); if (profitGrouped.hasOwnProperty(d)) profitGrouped[d] += s.price; });
-            costs.forEach(c => { const d = normalize(c.date); if (profitGrouped.hasOwnProperty(d)) profitGrouped[d] -= c.amount; });
+            sales.forEach(s => { const d = normalize(s.date); if (revGroupedP.hasOwnProperty(d)) revGroupedP[d] += s.price; });
+            costs.forEach(c => { const d = normalize(c.date); if (costGroupedP.hasOwnProperty(d)) costGroupedP[d] += c.amount; });
 
             const pLabels = Object.keys(profitGrouped).sort();
-            const pValues = pLabels.map(l => profitGrouped[l]);
+            let cumRev = 0, cumCost = 0;
+            const pValues = pLabels.map(l => {
+                cumRev += revGroupedP[l];
+                cumCost += costGroupedP[l];
+                return Math.round((cumRev - cumCost) * 100) / 100;
+            });
             const pDisplayLabels = pLabels.map(l => {
                 if (groupType === 'month') return new Date(l + "-01").toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
                 return new Date(l).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
