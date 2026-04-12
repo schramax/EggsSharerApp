@@ -1697,7 +1697,47 @@
             if (user) {
                 state.currentUser = user;
                 startDatabaseListeners(user.uid);
-                renderView('home');
+
+                // Web Share Target: check if app was opened via Android share sheet
+                const sharedParams = new URLSearchParams(window.location.search);
+                const sharedPaylink = sharedParams.get('paylink');
+                const sharedText = sharedParams.get('sharetext');
+
+                if (sharedPaylink || sharedText) {
+                    // Clean up the URL so the parameter doesn't persist on next open
+                    window.history.replaceState({}, '', window.location.pathname);
+
+                    // Only handle shares that come from Bancontact Pay
+                    const isBancontact = sharedPaylink && sharedPaylink.startsWith('https://pay.bancontact.com');
+                    if (!isBancontact) {
+                        renderView('home'); // Shared from another app — ignore silently
+                    } else {
+                        renderView('sales');
+                        setTimeout(() => {
+                            // Pre-fill the payment link
+                            const paylinkField = document.getElementById('s-paylink');
+                            const payGroup = document.getElementById('paylink-group');
+                            if (paylinkField) {
+                                paylinkField.value = sharedPaylink;
+                                if (payGroup) payGroup.classList.remove('hidden');
+                            }
+                            // Extract price from shared text (e.g. "8.00 €")
+                            if (sharedText) {
+                                const priceMatch = sharedText.match(/(\d+[.,]\d{2})\s*€/);
+                                if (priceMatch) {
+                                    const price = parseFloat(priceMatch[1].replace(',', '.'));
+                                    const priceField = document.getElementById('s-price');
+                                    if (priceField) priceField.value = price;
+                                    // Default: 6 eggs per 2€ → eggs = price × 3
+                                    const countField = document.getElementById('s-count');
+                                    if (countField) countField.value = Math.round(price * 3);
+                                }
+                            }
+                        }, 100);
+                    }
+                } else {
+                    renderView('home');
+                }
             } else {
                 state.currentUser = null;
                 renderView('login');
