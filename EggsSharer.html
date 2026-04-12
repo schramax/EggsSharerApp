@@ -986,7 +986,7 @@
                                 <div class="history-item">
                                     <div>
                                         <span class="badge badge-${s.type}">${s.type}</span>
-                                        <strong>${s.count} ${t('eggs')}${who ? ` ${t('eggs_to')} ${who}` : ''}</strong><br>
+                                        <strong>${s.count} ${who ? `${t('eggs_to')} ${who}` : t('eggs')}</strong><br>
                                         <span style="font-size: 0.8rem; color: #999">${new Date(s.date).toLocaleDateString()} • ${s.price}€${isSale ? ` (${s.payment})` : ''}</span>
                                     </div>
                                     <div style="display: flex; gap: 0.3rem">
