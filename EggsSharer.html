@@ -1707,9 +1707,16 @@
                     // Clean up the URL so the parameter doesn't persist on next open
                     window.history.replaceState({}, '', window.location.pathname);
 
-                    // Only handle shares that come from Bancontact Pay
-                    const isBancontact = sharedPaylink && sharedPaylink.startsWith('https://pay.bancontact.com');
-                    if (!isBancontact) {
+                    // Find the Bancontact URL — either as a direct param or embedded in the text body
+                    let bancontactUrl = null;
+                    if (sharedPaylink && sharedPaylink.startsWith('https://pay.bancontact.com')) {
+                        bancontactUrl = sharedPaylink;
+                    } else if (sharedText) {
+                        const urlMatch = sharedText.match(/https:\/\/pay\.bancontact\.com\S*/);
+                        if (urlMatch) bancontactUrl = urlMatch[0];
+                    }
+
+                    if (!bancontactUrl) {
                         renderView('home'); // Shared from another app — ignore silently
                     } else {
                         renderView('sales');
@@ -1718,7 +1725,7 @@
                             const paylinkField = document.getElementById('s-paylink');
                             const payGroup = document.getElementById('paylink-group');
                             if (paylinkField) {
-                                paylinkField.value = sharedPaylink;
+                                paylinkField.value = bancontactUrl;
                                 if (payGroup) payGroup.classList.remove('hidden');
                             }
                             // Extract price from shared text (e.g. "8.00 €")
