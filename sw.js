@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eggs-sharer-v7.2';
+const CACHE_NAME = 'eggs-sharer-v7.3';
 const ASSETS = [
   'EggsSharer.html',
   'manifest.json',

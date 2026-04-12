@@ -928,17 +928,6 @@
                                 <input type="date" id="s-date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
                             </div>
                             <div class="form-group">
-                                <label>${t('cons')}</label>
-                                <select id="s-consumer" class="form-input" required>
-                                    <option value="">${t('sel_cons')}</option>
-                                    ${state.consumers.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>${t('no_eggs')}</label>
-                                <input type="number" id="s-count" class="form-input" value="6">
-                            </div>
-                            <div class="form-group">
                                 <label>${t('tot')}</label>
                                 <select id="s-type" class="form-input">
                                     <option value="sale" selected>${t('sale')}</option>
@@ -947,8 +936,19 @@
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label>${t('no_eggs')}</label>
+                                <input type="number" id="s-count" class="form-input" value="6">
+                            </div>
+                            <div class="form-group">
                                 <label>${t('price')}</label>
                                 <input type="number" id="s-price" class="form-input" value="2" step="0.1">
+                            </div>
+                            <div class="form-group" id="consumer-group">
+                                <label>${t('cons')}</label>
+                                <select id="s-consumer" class="form-input">
+                                    <option value="">${t('sel_cons')}</option>
+                                    ${state.consumers.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label>${t('pm')}</label>
@@ -958,7 +958,7 @@
                                     <option value="none">${t('none')}</option>
                                 </select>
                             </div>
-                            <div class="form-group" id="paylink-group">
+                            <div class="form-group hidden" id="paylink-group">
                                 <label>${t('plink')}</label>
                                 <input type="url" id="s-paylink" class="form-input">
                             </div>
@@ -980,15 +980,17 @@
                         <h3 class="stat-label" style="margin-bottom: 1rem">${t('shis')}</h3>
                         ${getSorted(state.sales).map(s => {
                 const c = state.consumers.find(con => con.id === s.consumerId);
+                const isSale = s.type === 'sale';
+                const who = isSale ? (c ? c.name : t('unknown')) : null;
                 return `
                                 <div class="history-item">
                                     <div>
                                         <span class="badge badge-${s.type}">${s.type}</span>
-                                        <strong>${s.count} ${t('eggs_to')} ${c ? c.name : t('unknown')}</strong><br>
-                                        <span style="font-size: 0.8rem; color: #999">${new Date(s.date).toLocaleDateString()} • ${s.price}€ (${s.payment})</span>
+                                        <strong>${s.count} ${t('eggs')}${who ? ` ${t('eggs_to')} ${who}` : ''}</strong><br>
+                                        <span style="font-size: 0.8rem; color: #999">${new Date(s.date).toLocaleDateString()} • ${s.price}€${isSale ? ` (${s.payment})` : ''}</span>
                                     </div>
                                     <div style="display: flex; gap: 0.3rem">
-                                        <button class="btn btn-secondary" onclick="resendSale('${s.id}')"><i data-lucide="share-2"></i></button>
+                                        ${isSale ? `<button class="btn btn-secondary" onclick="resendSale('${s.id}')"><i data-lucide="share-2"></i></button>` : ''}
                                         <button class="btn" style="color: #ff4757" onclick="deleteItem('sales', '${s.id}')"><i data-lucide="trash-2"></i></button>
                                     </div>
                                 </div>
@@ -1002,39 +1004,46 @@
             const priceInput = document.getElementById('s-price');
             const paySel = document.getElementById('s-payment');
             const payGroup = document.getElementById('paylink-group');
+            const consumerGroup = document.getElementById('consumer-group');
 
-            typeSel.onchange = () => {
-                if (typeSel.value === 'gift' || typeSel.value === 'own') {
+            const onTypeChange = () => {
+                const isGiftOrOwn = typeSel.value === 'gift' || typeSel.value === 'own';
+                if (isGiftOrOwn) {
                     priceInput.value = 0;
                     paySel.value = 'none';
                     payGroup.classList.add('hidden');
+                    consumerGroup.classList.add('hidden');
                 } else {
                     priceInput.value = 2;
                     paySel.value = 'bancontact';
                     payGroup.classList.remove('hidden');
+                    consumerGroup.classList.remove('hidden');
                 }
             };
+            typeSel.onchange = onTypeChange;
 
             paySel.onchange = () => {
                 payGroup.classList.toggle('hidden', paySel.value !== 'bancontact');
             };
 
             window.submitSale = (method) => {
+                const type = typeSel.value;
                 const consumerId = document.getElementById('s-consumer').value;
-                if (!consumerId) return alert(t('alert_sel_cons'));
+                // Consumer is required only for actual sales
+                if (type === 'sale' && !consumerId) return alert(t('alert_sel_cons'));
                 const sale = {
                     id: Date.now().toString(),
                     date: document.getElementById('s-date').value,
-                    consumerId,
+                    consumerId: consumerId || null,
                     count: parseInt(document.getElementById('s-count').value),
-                    type: typeSel.value,
+                    type,
                     price: parseFloat(priceInput.value),
                     payment: paySel.value,
                     payLink: document.getElementById('s-paylink').value
                 };
                 state.sales.push(sale);
                 save('sales');
-                if (method !== 'save') shareSale(sale.id, method);
+                if (method !== 'save' && type === 'sale') shareSale(sale.id, method);
                 renderView('sales');
             };
         }
