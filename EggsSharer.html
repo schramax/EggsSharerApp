@@ -368,7 +368,11 @@
                 confirm_reset_all: "⚠️ WARNING: This will delete ALL data (Production, Sales, Consumers, Costs, etc.). Are you sure?", alert_reset_success: "All data has been reset.",
                 confirm_reset_tab: "⚠️ Are you sure you want to delete all {tab} data? This cannot be undone.", confirm_delete: "Delete this entry?", alert_sel_cons: "Select a consumer",
                 alert_not_supported: "Sharing not supported on this browser. Message copied to clipboard", compte: "Account Settings", del_acc: "Delete Account",
-                confirm_del_acc: "Are you sure you want to delete your account? This will erase your cloud data entirely. This action is irreversible.", alert_reauth: "Please log out and log back in before deleting your account for security reasons.", force_refresh: "Force App Update"
+                confirm_del_acc: "Are you sure you want to delete your account? This will erase your cloud data entirely. This action is irreversible.", alert_reauth: "Please log out and log back in before deleting your account for security reasons.", force_refresh: "Force App Update",
+                forgot_pw: "Forgot password?", enter_email_reset: "Please enter your email address first.", reset_pw_sent: "Password reset email sent! Check your inbox.",
+                email_verified: "Email verified", email_not_verified: "Email not verified", send_verif: "Send verification email", verif_sent: "Verification email sent! Check your inbox.",
+                change_email: "Change Email Address", new_email_lbl: "New Email Address", save_email: "Update Email", email_updated: "Email updated! Please verify your new address. You will be logged out.",
+                confirm_change_email: "Change your email to {email}?"
             },
             fr: {
                 nav_home: "Accueil", nav_harv: "Récolte", nav_cons: "Clients", nav_sale: "Ventes", nav_cost: "Coûts", nav_rep: "Rapports", nav_set: "Paramètres",
@@ -392,7 +396,11 @@
                 confirm_reset_all: "⚠️ ATTENTION : Cela supprimera TOUTES les données (Production, Ventes, Clients, Coûts, etc.). Êtes-vous sûr ?", alert_reset_success: "Toutes les données ont été réinitialisées.",
                 confirm_reset_tab: "⚠️ Êtes-vous sûr de vouloir supprimer toutes les données de {tab} ? Cette action est irréversible.", confirm_delete: "Supprimer cette entrée ?", alert_sel_cons: "Sélectionnez un client",
                 alert_not_supported: "Partage non supporté par ce navigateur. Message copié.", compte: "Paramètres du Compte", del_acc: "Supprimer le Compte",
-                confirm_del_acc: "Êtes-vous sûr de vouloir supprimer votre compte ? Cela effacera entièrement vos données dans le cloud. Cette action est irréversible.", alert_reauth: "Veuillez vous déconnecter et vous reconnecter avant de supprimer votre compte pour des raisons de sécurité.", force_refresh: "Forcer la mise à jour de l'app"
+                confirm_del_acc: "Êtes-vous sûr de vouloir supprimer votre compte ? Cela effacera entièrement vos données dans le cloud. Cette action est irréversible.", alert_reauth: "Veuillez vous déconnecter et vous reconnecter avant de supprimer votre compte pour des raisons de sécurité.", force_refresh: "Forcer la mise à jour de l'app",
+                forgot_pw: "Mot de passe oublié ?", enter_email_reset: "Veuillez d'abord saisir votre adresse email.", reset_pw_sent: "Email de réinitialisation envoyé ! Vérifiez votre boîte de réception.",
+                email_verified: "Email vérifié", email_not_verified: "Email non vérifié", send_verif: "Envoyer un email de vérification", verif_sent: "Email de vérification envoyé ! Vérifiez votre boîte de réception.",
+                change_email: "Changer l'adresse email", new_email_lbl: "Nouvelle adresse email", save_email: "Mettre à jour l'email", email_updated: "Email mis à jour ! Veuillez vérifier votre nouvelle adresse. Vous serez déconnecté.",
+                confirm_change_email: "Changer votre email pour {email} ?"
             }
         };
 
@@ -420,6 +428,11 @@
             return I18N[lang] ? (I18N[lang][k] || k) : k;
         };
 
+        // Sync initial language with Firebase Auth
+        if (firebase.auth()) {
+            firebase.auth().languageCode = state.settings.lang;
+        }
+
         STORES.forEach(s => {
             try {
                 state[s] = JSON.parse(localStorage.getItem(`eggApp_${s}`)) || [];
@@ -440,6 +453,9 @@
 
         function saveSettings() {
             localStorage.setItem('eggApp_settings', JSON.stringify(state.settings));
+            if (firebase.auth()) {
+                firebase.auth().languageCode = state.settings.lang;
+            }
         }
 
         /** 
@@ -660,7 +676,8 @@
                         </div>
                         
                         <button class="btn btn-primary btn-block" style="margin-bottom: 0.5rem" onclick="login()">${t('btn_login')}</button>
-                        <button class="btn btn-secondary btn-block" onclick="signup()">${t('btn_signup')}</button>
+                        <button class="btn btn-secondary btn-block" style="margin-bottom: 0.5rem" onclick="signup()">${t('btn_signup')}</button>
+                        <button type="button" class="btn btn-block" style="background:none; color:var(--text-muted); font-size:0.8rem; padding: 0.4rem" onclick="forgotPassword()">${t('forgot_pw')}</button>
                     </div>
                     <div style="text-align: center; margin-top: 1.5rem; color: #999; font-size: 0.8rem;">
                         ${t('made_by')}
@@ -685,7 +702,17 @@
                 const e = document.getElementById('l-email').value;
                 const p = document.getElementById('l-pass').value;
                 if (!e || !p) return;
-                firebase.auth().createUserWithEmailAndPassword(e, p).catch(err => alert(err.message));
+                firebase.auth().createUserWithEmailAndPassword(e, p)
+                    .then(cred => cred.user.sendEmailVerification())
+                    .catch(err => alert(err.message));
+            };
+
+            window.forgotPassword = () => {
+                const e = document.getElementById('l-email').value;
+                if (!e) return alert(t('enter_email_reset'));
+                firebase.auth().sendPasswordResetEmail(e)
+                    .then(() => alert(t('reset_pw_sent')))
+                    .catch(err => alert(err.message));
             };
         }
 
@@ -1559,10 +1586,28 @@
 
                     <div class="card">
                         <h3 class="stat-label" style="margin-bottom: 1rem">${t('compte')}</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; word-break: break-all;">
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; word-break: break-all;">
                             <i data-lucide="user" style="width:14px;height:14px;vertical-align:middle"></i>
                             ${state.currentUser ? state.currentUser.email : ''}
                         </p>
+                        <p style="font-size: 0.8rem; margin-bottom: 1rem; color: ${state.currentUser && state.currentUser.emailVerified ? '#2d5a27' : '#e17055'}">
+                            ${state.currentUser && state.currentUser.emailVerified
+                                ? `✅ ${t('email_verified')}`
+                                : `⚠️ ${t('email_not_verified')}`}
+                        </p>
+                        ${state.currentUser && !state.currentUser.emailVerified ? `
+                        <button class="btn btn-block" style="margin-bottom: 0.5rem; background: #fff8e1; color: #856404; border: 1px solid #f4c430" onclick="sendVerifEmail()">
+                            <i data-lucide="mail"></i> ${t('send_verif')}
+                        </button>` : ''}
+
+                        <div class="form-group" style="margin-top: 0.75rem">
+                            <label>${t('new_email_lbl')}</label>
+                            <input type="email" id="new-email-input" class="form-input" placeholder="${state.currentUser ? state.currentUser.email : ''}">
+                        </div>
+                        <button class="btn btn-block" style="margin-bottom: 0.5rem; background: #f0f8ff; color: #0084c7; border: 1px solid #b3d9f5" onclick="changeEmail()">
+                            <i data-lucide="at-sign"></i> ${t('save_email')}
+                        </button>
+
                         <button class="btn btn-block" style="margin-bottom: 0.5rem; background: #fdfbf7; color: var(--primary); border: 1px solid var(--border)" onclick="firebase.auth().signOut()"><i data-lucide="log-out"></i> ${t('logout')}</button>
                         <button class="btn btn-block" style="margin-top: 0.25rem; background: #fff0f0; color: #d63031; border: 1px solid #fab1a0" onclick="deleteAccount()"><i data-lucide="user-x"></i> ${t('del_acc')}</button>
                     </div>
@@ -1600,6 +1645,36 @@
                     }
                 });
             }
+
+            /** Send email verification to current user */
+            window.sendVerifEmail = () => {
+                const user = firebase.auth().currentUser;
+                if (!user) return;
+                user.sendEmailVerification()
+                    .then(() => alert(t('verif_sent')))
+                    .catch(err => alert(err.message));
+            };
+
+            /** Change email address and sign out to force re-verification */
+            window.changeEmail = () => {
+                const user = firebase.auth().currentUser;
+                const newEmail = document.getElementById('new-email-input').value.trim();
+                if (!newEmail || newEmail === user.email) return;
+                if (!confirm(t('confirm_change_email').replace('{email}', newEmail))) return;
+                user.updateEmail(newEmail)
+                    .then(() => user.sendEmailVerification())
+                    .then(() => {
+                        alert(t('email_updated'));
+                        firebase.auth().signOut();
+                    })
+                    .catch(err => {
+                        if (err.code === 'auth/requires-recent-login') {
+                            alert(t('alert_reauth'));
+                        } else {
+                            alert(err.message);
+                        }
+                    });
+            };
 
             /** Delete account: wipe DB data then remove auth account */
             window.deleteAccount = () => {
