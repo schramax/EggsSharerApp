@@ -401,8 +401,8 @@
                 confirm_del_acc: "Are you sure you want to delete your account? This will erase your cloud data entirely. This action is irreversible.", alert_reauth: "Please log out and log back in before deleting your account for security reasons.", force_refresh: "Force App Update",
                 forgot_pw: "Forgot password?", enter_email_reset: "Please enter your email address first.", reset_pw_sent: "Password reset email sent! Check your inbox.",
                 email_verified: "Email verified", email_not_verified: "Email not verified", send_verif: "Send verification email", verif_sent: "Verification email sent! Check your inbox.",
-                change_email: "Change Email Address", new_email_lbl: "New Email Address", save_email: "Update Email", email_updated: "Email updated! Please verify your new address. You will be logged out.",
-                confirm_change_email: "Change your email to {email}?"
+                change_email: "Change Email Address", new_email_lbl: "New Email Address", save_email: "Update Email", email_updated: "Verification link sent to your NEW email! Please click it to complete the change.",
+                confirm_change_email: "Send verification link to {email} to change your account address?"
             },
             fr: {
                 nav_home: "Accueil", nav_harv: "Récolte", nav_cons: "Clients", nav_sale: "Ventes", nav_cost: "Coûts", nav_rep: "Rapports", nav_set: "Paramètres",
@@ -429,8 +429,8 @@
                 confirm_del_acc: "Êtes-vous sûr de vouloir supprimer votre compte ? Cela effacera entièrement vos données dans le cloud. Cette action est irréversible.", alert_reauth: "Veuillez vous déconnecter et vous reconnecter avant de supprimer votre compte pour des raisons de sécurité.", force_refresh: "Forcer la mise à jour de l'app",
                 forgot_pw: "Mot de passe oublié ?", enter_email_reset: "Veuillez d'abord saisir votre adresse email.", reset_pw_sent: "Email de réinitialisation envoyé ! Vérifiez votre boîte de réception.",
                 email_verified: "Email vérifié", email_not_verified: "Email non vérifié", send_verif: "Envoyer un email de vérification", verif_sent: "Email de vérification envoyé ! Vérifiez votre boîte de réception.",
-                change_email: "Changer l'adresse email", new_email_lbl: "Nouvelle adresse email", save_email: "Mettre à jour l'email", email_updated: "Email mis à jour ! Veuillez vérifier votre nouvelle adresse. Vous serez déconnecté.",
-                confirm_change_email: "Changer votre email pour {email} ?"
+                change_email: "Changer l'adresse email", new_email_lbl: "Nouvelle adresse email", save_email: "Mettre à jour l'email", email_updated: "Lien de vérification envoyé à votre NOUVELLE adresse ! Cliquez dessus pour confirmer le changement.",
+                confirm_change_email: "Envoyer un lien de vérification à {email} pour changer l'adresse de votre compte ?"
             }
         };
 
@@ -1731,11 +1731,12 @@
                 const newEmail = document.getElementById('new-email-input').value.trim();
                 if (!newEmail || newEmail === user.email) return;
                 if (!confirm(t('confirm_change_email').replace('{email}', newEmail))) return;
-                user.updateEmail(newEmail)
-                    .then(() => user.sendEmailVerification())
+                
+                // Uses the modern security flow: verify new email BEFORE the switch happens
+                user.verifyBeforeUpdateEmail(newEmail)
                     .then(() => {
                         alert(t('email_updated'));
-                        firebase.auth().signOut();
+                        // No sign-out needed; user stays logged in with old email until they verify the new one
                     })
                     .catch(err => {
                         if (err.code === 'auth/requires-recent-login') {
