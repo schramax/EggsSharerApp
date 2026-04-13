@@ -246,6 +246,36 @@
             background: #fff;
         }
 
+        .stepper-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stepper-btn {
+            background: #fdfbf7;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--primary);
+            transition: all 0.2s;
+        }
+
+        .stepper-btn:hover {
+            background: #f8f8f8;
+            border-color: var(--primary);
+        }
+
+        .stepper-btn:active {
+            transform: scale(0.95);
+        }
+
         /* Tabs and Filters */
         .filter-bar {
             display: grid;
@@ -362,7 +392,7 @@
                 es: "Eggs Sold", rev: "Revenue", cost: "Cost", np: "Net Profit",
                 tr_es: "Trend: Egg Stock Level", tr_he: "Trend: Harvested Eggs", tr_sv: "Trend: Sales Volume", tr_rf: "Trend: Revenue Flow", tr_pc: "Trend: Poultry Costs", tr_np: "Trend: Net Profit", sd: "Sales Distribution", cd: "Cost Distribution",
                 set_t: "Settings", set_s: "Manage your preferences and data", lang: "Language", en: "English", fr: "Français",
-                dm: "Data Management", exp: "Export", imp: "Import", reset_all: "Reset All Data", made_by: "Created with 🥚 by schramax", prompt: "Enter value modification +/-",
+                dm: "Data Management", exp: "Export", imp: "Import", reset_all: "Reset All Data", made_by: "Created with 🥚 by schramax",
                 login_title: "Sign In to Sync", login_sub: "Access your shared flock data.", email: "Email Address", password: "Password", btn_login: "Login", btn_signup: "Create Account", logout: "Log Out",
                 confirm_overwrite: "Are you sure? This will OVERWRITE your current data with the backup file.", alert_restored: "Data restored successfully!", alert_invalid_backup: "Invalid backup file.",
                 confirm_reset_all: "⚠️ WARNING: This will delete ALL data (Production, Sales, Consumers, Costs, etc.). Are you sure?", alert_reset_success: "All data has been reset.",
@@ -390,7 +420,7 @@
                 es: "Œufs Vendus", rev: "Revenus", cost: "Coûts", np: "Bénéfice Net",
                 tr_es: "Tendance : Niveau de Stock", tr_he: "Tendance : Œufs Récoltés", tr_sv: "Tendance : Volume des Ventes", tr_rf: "Tendance : Flux de Revenus", tr_pc: "Tendance : Coûts du Poulailler", tr_np: "Tendance : Bénéfice Net", sd: "Répartition des Ventes", cd: "Répartition des Coûts",
                 set_t: "Paramètres", set_s: "Gérez vos préférences et vos données", lang: "Langue", en: "English", fr: "Français",
-                dm: "Gestion des Données", exp: "Exporter", imp: "Importer", reset_all: "Réinitialiser tout", made_by: "Créé avec 🥚 par schramax", prompt: "Entrez la modification +/-",
+                dm: "Gestion des Données", exp: "Exporter", imp: "Importer", reset_all: "Réinitialiser tout", made_by: "Créé avec 🥚 par schramax",
                 login_title: "Connexion à votre Poulailler", login_sub: "Accédez à vos données partagées.", email: "Adresse Email", password: "Mot de Passe", btn_login: "Se Connecter", btn_signup: "Créer un Compte", logout: "Déconnexion",
                 confirm_overwrite: "Êtes-vous sûr ? Cela va ÉCRASER vos données actuelles avec le fichier de sauvegarde.", alert_restored: "Données restaurées avec succès !", alert_invalid_backup: "Fichier de sauvegarde invalide.",
                 confirm_reset_all: "⚠️ ATTENTION : Cela supprimera TOUTES les données (Production, Ventes, Clients, Coûts, etc.). Êtes-vous sûr ?", alert_reset_success: "Toutes les données ont été réinitialisées.",
@@ -772,11 +802,12 @@
 
                     <div class="card">
                         <h3 class="stat-label" style="margin-bottom: 0.5rem">${t('adj_sc')}</h3>
-                        <div class="stats-grid">
-                            <input type="number" id="adj-stock-input" class="form-input" style="text-align: center; font-weight: bold" value="0">
-                            <button class="btn btn-primary" onclick="adjustStock()">${t('adj_sc')}</button>
+                        <div class="stepper-container">
+                            <button class="stepper-btn" onclick="decStock()"><i data-lucide="minus"></i></button>
+                            <input type="number" id="adj-stock-input" class="form-input" style="text-align: center; font-weight: bold; flex: 1" value="0">
+                            <button class="stepper-btn" onclick="incStock()"><i data-lucide="plus"></i></button>
                         </div>
-                        <p style="font-size: 0.7rem; color: #999; text-align: center; margin-top: 0.5rem;">${t('prompt')}</p>
+                        <button class="btn btn-primary btn-block" onclick="adjustStock()">${t('adj_sc')}</button>
                     </div>
 
                     <div class="card">
@@ -794,6 +825,18 @@
 
             updateAppVersionDisplay();
         }
+
+        /** Increase stock input by 1 */
+        window.incStock = () => {
+            const input = document.getElementById('adj-stock-input');
+            if (input) input.value = parseInt(input.value || 0) + 1;
+        };
+
+        /** Decrease stock input by 1 */
+        window.decStock = () => {
+            const input = document.getElementById('adj-stock-input');
+            if (input) input.value = parseInt(input.value || 0) - 1;
+        };
 
         window.adjustStock = () => {
             const input = document.getElementById('adj-stock-input');
