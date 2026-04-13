@@ -651,6 +651,29 @@
          * =========================================
          */
 
+        /** Helper to render the footer with copyright and version placeholder */
+        function getAppFooterHTML() {
+            return `
+                <div style="text-align: center; margin-top: 2rem; color: #999; font-size: 0.8rem; padding-bottom: 2rem;">
+                    ${t('made_by')}<br>
+                    <span id="app-version-display" style="font-size: 0.75rem; opacity: 0.7;">v...</span>
+                </div>
+            `;
+        }
+
+        /** Helper to fetch and display the current app version from Cache API */
+        function updateAppVersionDisplay() {
+            if ('caches' in window) {
+                caches.keys().then(keys => {
+                    const swCache = keys.find(k => k.startsWith('eggs-sharer-'));
+                    const versionEl = document.getElementById('app-version-display');
+                    if (versionEl) {
+                        versionEl.textContent = swCache ? swCache.replace('eggs-sharer-', '') : 'v0';
+                    }
+                });
+            }
+        }
+
         /** Renders the Login view. */
         function renderLogin() {
             mainContent.innerHTML = `
@@ -679,11 +702,11 @@
                         <button class="btn btn-secondary btn-block" style="margin-bottom: 0.5rem" onclick="signup()">${t('btn_signup')}</button>
                         <button type="button" class="btn btn-block" style="background:none; color:var(--text-muted); font-size:0.8rem; padding: 0.4rem" onclick="forgotPassword()">${t('forgot_pw')}</button>
                     </div>
-                    <div style="text-align: center; margin-top: 1.5rem; color: #999; font-size: 0.8rem;">
-                        ${t('made_by')}
-                    </div>
+                    ${getAppFooterHTML()}
                 </div>
             `;
+
+            updateAppVersionDisplay();
 
             document.getElementById('login-lang-selector').onchange = (e) => {
                 state.settings.lang = e.target.value;
@@ -764,8 +787,11 @@
                             <button class="btn btn-secondary btn-block" onclick="renderView('costs')">${t('add_cost')}</button>
                         </div>
                     </div>
+                    ${getAppFooterHTML()}
                 </div>
             `;
+
+            updateAppVersionDisplay();
         }
 
         window.adjustStock = () => {
@@ -1621,30 +1647,17 @@
                         <button class="btn btn-block" style="margin-top: 0.5rem; background: #fff0f0; color: #d63031; border: 1px solid #fab1a0" onclick="resetAllData()"><i data-lucide="trash-2"></i> ${t('reset_all')}</button>
                         <button class="btn btn-block" style="margin-top: 0.5rem; background: #f0f8ff; color: #0084c7; border: 1px solid #b3d9f5" onclick="forceRefresh()"><i data-lucide="refresh-cw"></i> ${t('force_refresh')}</button>
                     </div>
-
-                    <div style="text-align: center; margin-top: 2rem; color: #999; font-size: 0.8rem;">
-                        ${t('made_by')}<br>
-                        <span id="app-version-display" style="font-size: 0.75rem; opacity: 0.7;">v...</span>
-                    </div>
+                    ${getAppFooterHTML()}
                 </div>
             `;
+
+            updateAppVersionDisplay();
 
             document.getElementById('lang-selector').onchange = (e) => {
                 state.settings.lang = e.target.value;
                 saveSettings();
                 renderView(currentView);
             };
-
-            // Dynamically read version from the active Service Worker cache name
-            if ('caches' in window) {
-                caches.keys().then(keys => {
-                    const swCache = keys.find(k => k.startsWith('eggs-sharer-'));
-                    const versionEl = document.getElementById('app-version-display');
-                    if (versionEl) {
-                        versionEl.textContent = swCache ? swCache.replace('eggs-sharer-', '') : 'v0';
-                    }
-                });
-            }
 
             /** Send email verification to current user */
             window.sendVerifEmail = () => {
