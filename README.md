@@ -1,4 +1,4 @@
-# 🥚 EggsSharer App
+# 🥚 EggsSharer App (English Description)
 
 **EggsSharer** is a free, cloud-synchronized Progressive Web App (PWA) designed for backyard chicken owners to effortlessly manage production, track customers, and monitor finances.
 
@@ -62,7 +62,7 @@ All user data is stored exclusively in your private Firebase cloud account, isol
 
 ---
 
-# 🥚 Description en Français
+# 🥚 EggsSharer App (Description en Français)
 
 **EggsSharer** est une Progressive Web App (PWA) gratuite et synchronisée, conçue pour gérer facilement la production d'œufs, le suivi des clients et les finances de votre poulailler.
 
