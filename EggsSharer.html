@@ -488,6 +488,18 @@
             }
         }
 
+        /**
+         * Wipes all user-specific data from the local state and localStorage.
+         * Crucial for privacy when switching accounts on the same device.
+         */
+        function clearLocalData() {
+            STORES.forEach(s => {
+                state[s] = [];
+                localStorage.removeItem(`eggApp_${s}`);
+            });
+            // Note: Settings (Language) are preserved as they are non-sensitive
+        }
+
         /** 
          * Exports all current data to a downloadable JSON file. 
          */
@@ -1880,6 +1892,7 @@
                 }
             } else {
                 state.currentUser = null;
+                clearLocalData();
                 renderView('login');
             }
         });
