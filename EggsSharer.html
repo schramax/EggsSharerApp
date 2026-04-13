@@ -155,6 +155,19 @@
             border: 1px solid rgba(0, 0, 0, 0.02);
         }
 
+        .alert-error {
+            background: #fff0f0;
+            color: #d63031;
+            padding: 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            border: 1px solid #fab1a0;
+            display: none;
+            width: 100%;
+            text-align: left;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -402,7 +415,8 @@
                 forgot_pw: "Forgot password?", enter_email_reset: "Please enter your email address first.", reset_pw_sent: "Password reset email sent! Check your inbox.",
                 email_verified: "Email verified", email_not_verified: "Email not verified", send_verif: "Send verification email", verif_sent: "Verification email sent! Check your inbox.",
                 change_email: "Change Email Address", new_email_lbl: "New Email Address", save_email: "Update Email", email_updated: "Verification link sent to your NEW email! Please click it to complete the change.",
-                confirm_change_email: "Send verification link to {email} to change your account address?"
+                confirm_change_email: "Send verification link to {email} to change your account address?",
+                err_login: "Invalid email or password.", err_email_used: "This email is already in use.", err_weak_pass: "Password should be at least 6 characters.", err_generic: "An error occurred. Please try again."
             },
             fr: {
                 nav_home: "Accueil", nav_harv: "Récolte", nav_cons: "Clients", nav_sale: "Ventes", nav_cost: "Coûts", nav_rep: "Rapports", nav_set: "Paramètres",
@@ -430,7 +444,8 @@
                 forgot_pw: "Mot de passe oublié ?", enter_email_reset: "Veuillez d'abord saisir votre adresse email.", reset_pw_sent: "Email de réinitialisation envoyé ! Vérifiez votre boîte de réception.",
                 email_verified: "Email vérifié", email_not_verified: "Email non vérifié", send_verif: "Envoyer un email de vérification", verif_sent: "Email de vérification envoyé ! Vérifiez votre boîte de réception.",
                 change_email: "Changer l'adresse email", new_email_lbl: "Nouvelle adresse email", save_email: "Mettre à jour l'email", email_updated: "Lien de vérification envoyé à votre NOUVELLE adresse ! Cliquez dessus pour confirmer le changement.",
-                confirm_change_email: "Envoyer un lien de vérification à {email} pour changer l'adresse de votre compte ?"
+                confirm_change_email: "Envoyer un lien de vérification à {email} pour changer l'adresse de votre compte ?",
+                err_login: "Email ou mot de passe invalide.", err_email_used: "Cet email est déjà utilisé.", err_weak_pass: "Le mot de passe doit faire au moins 6 caractères.", err_generic: "Une erreur est survenue. Veuillez réessayer."
             }
         };
 
@@ -729,8 +744,10 @@
                     <div class="card" style="width: 100%; max-width: 400px; text-align: center">
                         <i data-lucide="cloud" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1rem"></i>
                         <h2 class="view-title">${t('login_title')}</h2>
-                        <p class="view-subtitle" style="margin-bottom: 2rem">${t('login_sub')}</p>
+                        <p class="view-subtitle" style="margin-bottom: 1rem">${t('login_sub')}</p>
                         
+                        <div id="login-error" class="alert-error"></div>
+
                         <div class="form-group" style="text-align: left">
                             <label>${t('email')}</label>
                             <input type="email" id="l-email" class="form-input" placeholder="farmer@coop.com">
@@ -756,20 +773,45 @@
                 renderLogin(); // Re-render login page in new language
             };
             
+            /** Helper to translate technical firebase errors into friendly localized ones */
+            const getFriendlyAuthError = (err) => {
+                const code = err.code || "";
+                const msg = (err.message || "").toUpperCase();
+                
+                // Catch all "invalid credentials" variants (JSON or plain codes)
+                if (code.includes('invalid-credential') || code.includes('user-not-found') || code.includes('wrong-password') || msg.includes('INVALID_LOGIN_CREDENTIALS')) {
+                    return t('err_login');
+                }
+                if (code.includes('email-already-in-use')) return t('err_email_used');
+                if (code.includes('weak-password')) return t('err_weak_pass');
+                
+                return err.message; // Fallback to raw message if unknown
+            };
+
             window.login = () => {
                 const e = document.getElementById('l-email').value;
                 const p = document.getElementById('l-pass').value;
+                const errDiv = document.getElementById('login-error');
                 if (!e || !p) return;
-                firebase.auth().signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
+                
+                firebase.auth().signInWithEmailAndPassword(e, p).catch(err => {
+                    errDiv.textContent = getFriendlyAuthError(err);
+                    errDiv.style.display = 'block';
+                });
             };
             
             window.signup = () => {
                 const e = document.getElementById('l-email').value;
                 const p = document.getElementById('l-pass').value;
+                const errDiv = document.getElementById('login-error');
                 if (!e || !p) return;
+                
                 firebase.auth().createUserWithEmailAndPassword(e, p)
                     .then(cred => cred.user.sendEmailVerification())
-                    .catch(err => alert(err.message));
+                    .catch(err => {
+                        errDiv.textContent = getFriendlyAuthError(err);
+                        errDiv.style.display = 'block';
+                    });
             };
 
             window.forgotPassword = () => {
