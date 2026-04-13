@@ -773,9 +773,10 @@
                     <div class="card">
                         <h3 class="stat-label" style="margin-bottom: 0.5rem">${t('adj_sc')}</h3>
                         <div class="stats-grid">
-                            <div class="form-input" style="text-align: center; font-weight: bold; cursor: pointer" onclick="adjustStock()">${getCalculatedStock()}</div>
+                            <input type="number" id="adj-stock-input" class="form-input" style="text-align: center; font-weight: bold" value="0">
                             <button class="btn btn-primary" onclick="adjustStock()">${t('adj_sc')}</button>
                         </div>
+                        <p style="font-size: 0.7rem; color: #999; text-align: center; margin-top: 0.5rem;">${t('prompt')}</p>
                     </div>
 
                     <div class="card">
@@ -795,9 +796,10 @@
         }
 
         window.adjustStock = () => {
-            const val = prompt(t('prompt'));
-            if (val && !isNaN(val)) {
-                state.stock_adjustments.push({ id: Date.now().toString(), date: new Date().toISOString(), amount: parseInt(val) });
+            const input = document.getElementById('adj-stock-input');
+            const val = parseInt(input.value);
+            if (!isNaN(val) && val !== 0) {
+                state.stock_adjustments.push({ id: Date.now().toString(), date: new Date().toISOString(), amount: val });
                 save('stock_adjustments');
                 renderView(currentView);
             }
