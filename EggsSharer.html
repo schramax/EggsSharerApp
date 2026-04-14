@@ -1117,10 +1117,10 @@
                             <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem; margin-bottom: 0.5rem">
                                 <button type="button" class="btn btn-primary" onclick="submitSale('save')">${t('save_ns')}</button>
                             </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem">
-                                <button type="button" class="btn btn-secondary" onclick="submitSale('whatsapp')">WhatsApp</button>
-                                <button type="button" class="btn btn-secondary" onclick="submitSale('share')">${t('gen_sh')}</button>
-                            </div>
+                             <div id="share-buttons-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem">
+                                 <button type="button" class="btn btn-secondary" onclick="submitSale('whatsapp')">WhatsApp</button>
+                                 <button type="button" class="btn btn-secondary" onclick="submitSale('share')">${t('gen_sh')}</button>
+                             </div>
                         </form>
                     </div>
 
@@ -1160,16 +1160,19 @@
 
             const onTypeChange = () => {
                 const isGiftOrOwn = typeSel.value === 'gift' || typeSel.value === 'own';
+                const shareGroup = document.getElementById('share-buttons-group');
                 if (isGiftOrOwn) {
                     priceInput.value = 0;
                     paySel.value = 'none';
                     payGroup.classList.add('hidden');
                     consumerGroup.classList.add('hidden');
+                    if (shareGroup) shareGroup.classList.add('hidden');
                 } else {
                     priceInput.value = 2;
                     paySel.value = 'bancontact';
                     payGroup.classList.remove('hidden');
                     consumerGroup.classList.remove('hidden');
+                    if (shareGroup) shareGroup.classList.remove('hidden');
                 }
             };
             typeSel.onchange = onTypeChange;
