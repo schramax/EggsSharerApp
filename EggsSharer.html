@@ -403,7 +403,7 @@
                 pt_t: "Poultry Costs", pt_s: "These eggs are not free, alas!", tmc: "Total Costs (Month)", cost_e: "Cost (€)", cat: "Category", food: "Food", lit: "Litter", med: "Medicine", oth: "Others", lc: "Log Cost", res_c: "Reset Costs History", ch: "Costs History",
                 rep_t: "Reports", rep_s: "Insights into your poultry performance!", lm: "Last Month", m3: "3 Months", ly: "Last Year", ever: "Ever", harv: "Harvested",
                 es: "Eggs Sold", rev: "Revenue", cost: "Cost", np: "Net Profit",
-                tr_es: "Trend: Egg Stock Level", tr_he: "Trend: Harvested Eggs", tr_sv: "Trend: Sales Volume", tr_rf: "Trend: Revenue Flow", tr_pc: "Trend: Poultry Costs", tr_np: "Trend: Net Profit", sd: "Sales Distribution", cd: "Cost Distribution",
+                tr_es: "Trend: Egg Stock Level", tr_he: "Trend: Harvested Eggs", tr_sv: "Trend: Sales Volume", tr_rf: "Trend: Revenue Flow", tr_pc: "Trend: Poultry Costs", tr_np: "Trend: Net Profit", sd: "Sales Distribution", spm_t: "Payment Method Analysis", cd: "Cost Distribution",
                 set_t: "Settings", set_s: "Manage your preferences and data", lang: "Language", en: "English", fr: "Français",
                 dm: "Data Management", exp: "Export", imp: "Import", reset_all: "Reset All Data", made_by: "Created with 🥚 by schramax",
                 login_title: "Sign In to Sync", login_sub: "Access your shared flock data.", email: "Email Address", password: "Password", btn_login: "Login", btn_signup: "Create Account", logout: "Log Out",
@@ -433,7 +433,7 @@
                 pt_t: "Coûts du Poulailler", pt_s: "Ces œufs ne sont pas gratuits, hélas !", tmc: "Coûts Totaux (Mois)", cost_e: "Coût (€)", cat: "Catégorie", food: "Nourriture", lit: "Litière", med: "Médicaments", oth: "Autres", lc: "Enregistrer Coût", res_c: "Effacer l'historique", ch: "Historique des Coûts",
                 rep_t: "Rapports", rep_s: "Aperçu des performances de votre poulailler !", lm: "Mois Dernier", m3: "3 Mois", ly: "L'année dernière", ever: "Toujours", harv: "Récolté",
                 es: "Œufs Vendus", rev: "Revenus", cost: "Coûts", np: "Bénéfice Net",
-                tr_es: "Tendance : Niveau de Stock", tr_he: "Tendance : Œufs Récoltés", tr_sv: "Tendance : Volume des Ventes", tr_rf: "Tendance : Flux de Revenus", tr_pc: "Tendance : Coûts du Poulailler", tr_np: "Tendance : Bénéfice Net", sd: "Répartition des Ventes", cd: "Répartition des Coûts",
+                tr_es: "Tendance : Niveau de Stock", tr_he: "Tendance : Œufs Récoltés", tr_sv: "Tendance : Volume des Ventes", tr_rf: "Tendance : Flux de Revenus", tr_pc: "Tendance : Coûts du Poulailler", tr_np: "Tendance : Bénéfice Net", sd: "Répartition des Ventes", spm_t: "Analyse des Modes de Paiement", cd: "Répartition des Coûts",
                 set_t: "Paramètres", set_s: "Gérez vos préférences et vos données", lang: "Langue", en: "English", fr: "Français",
                 dm: "Gestion des Données", exp: "Exporter", imp: "Importer", reset_all: "Réinitialiser tout", made_by: "Créé avec 🥚 par schramax",
                 login_title: "Connexion à votre Poulailler", login_sub: "Accédez à vos données partagées.", email: "Adresse Email", password: "Mot de Passe", btn_login: "Se Connecter", btn_signup: "Créer un Compte", logout: "Déconnexion",
@@ -1403,6 +1403,20 @@
             const costsDist = { food: 0, litter: 0, medicine: 0, others: 0 };
             costs.forEach(c => costsDist[c.category] += c.amount);
 
+            const paymentDist = { bancontact: 0, cash: 0, revenueBancontact: 0, revenueCash: 0, transBancontact: 0, transCash: 0 };
+            sales.filter(s => s.type === 'sale').forEach(s => {
+                if (s.payment === 'bancontact') { 
+                    paymentDist.transBancontact++;
+                    paymentDist.bancontact += (s.count || 0); 
+                    paymentDist.revenueBancontact += (s.price || 0); 
+                }
+                else if (s.payment === 'cash') { 
+                    paymentDist.transCash++;
+                    paymentDist.cash += (s.count || 0); 
+                    paymentDist.revenueCash += (s.price || 0); 
+                }
+            });
+
             target.innerHTML = `
                 <div class="card stats-grid">
                     <div class="stat-card">
@@ -1474,6 +1488,34 @@
                     <h3 class="stat-label text-center" style="margin-bottom: 1rem">${t('cd')}</h3>
                     <div class="chart-container"><canvas id="costs-pie"></canvas></div>
                 </div>
+
+                <div class="card">
+                    <h3 class="stat-label text-center" style="margin-bottom: 0.5rem">${t('spm_t')}</h3>
+                    <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem; font-size: 0.8rem;">
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #2d5a27; border-radius: 2px;"></span>
+                            <span>${t('banct')}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.4rem;">
+                            <span style="display: inline-block; width: 10px; height: 10px; background: #f4c430; border-radius: 2px;"></span>
+                            <span>${t('cash')}</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: stretch;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="chart-container" style="height: 150px"><canvas id="payment-trans-bar"></canvas></div>
+                            <p style="font-size: 0.8rem; text-align: center; color: #777; margin-top: 0.4rem; font-weight: 500;">${t('nav_sale')}</p>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="chart-container" style="height: 150px"><canvas id="payment-vol-bar"></canvas></div>
+                            <p style="font-size: 0.8rem; text-align: center; color: #777; margin-top: 0.4rem; font-weight: 500;">${t('es')}</p>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="chart-container" style="height: 150px"><canvas id="payment-rev-bar"></canvas></div>
+                            <p style="font-size: 0.8rem; text-align: center; color: #777; margin-top: 0.4rem; font-weight: 500;">${t('rev')}</p>
+                        </div>
+                    </div>
+                </div>
             `;
 
 
@@ -1518,6 +1560,34 @@
                     }]
                 },
                 options: getPieOptions('€')
+            });
+
+            // Payment analysis bars (3 side-by-side)
+            const commonBarOptions = {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, datalabels: { display: true, anchor: 'end', align: 'top', font: { weight: 'bold', size: 12 } } },
+                scales: { 
+                    y: { display: false, beginAtZero: true, grace: '25%' }, 
+                    x: { display: false } 
+                }
+            };
+
+            new Chart(document.getElementById('payment-trans-bar'), {
+                type: 'bar',
+                data: { labels: [t('banct'), t('cash')], datasets: [{ data: [paymentDist.transBancontact, paymentDist.transCash], backgroundColor: ['#2d5a27', '#f4c430'] }] },
+                options: commonBarOptions
+            });
+
+            new Chart(document.getElementById('payment-vol-bar'), {
+                type: 'bar',
+                data: { labels: [t('banct'), t('cash')], datasets: [{ data: [paymentDist.bancontact, paymentDist.cash], backgroundColor: ['#2d5a27', '#f4c430'] }] },
+                options: { ...commonBarOptions, plugins: { ...commonBarOptions.plugins, datalabels: { ...commonBarOptions.plugins.datalabels, formatter: (v) => v + ' ' + t('eggs') } } }
+            });
+
+            new Chart(document.getElementById('payment-rev-bar'), {
+                type: 'bar',
+                data: { labels: [t('banct'), t('cash')], datasets: [{ data: [paymentDist.revenueBancontact, paymentDist.revenueCash], backgroundColor: ['#2d5a27', '#f4c430'] }] },
+                options: { ...commonBarOptions, plugins: { ...commonBarOptions.plugins, datalabels: { ...commonBarOptions.plugins.datalabels, formatter: (v) => v + '€' } } }
             });
 
             // ================= TRENDLINE RENDERING LOGIC ================= //
