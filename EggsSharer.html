@@ -399,7 +399,7 @@
                 fullname: "Full Name", phone: "Phone Number", comment: "Comment (Optional)", save_cons: "Save Consumer Info", res_cons: "Reset Consumers List", unknown: "Unknown",
                 st: "Sale Management", ss: "These eggs are worth sharing!", sm: "Sales (Month)", rm: "Revenue (Month)", esm: "Eggs Sold (Month)", cons: "Consumer", sel_cons: "Select consumer",
                 tot: "Type of Transaction", sale: "Sale", gift: "Gift", own: "Own Use", price: "Price Asked (€)", pm: "Payment Method",
-                banct: "Bancontact App link", cash: "Cash", none: "N/A", plink: "Payconiq Link (Paste here)", save_ns: "Save without Sharing", gen_sh: "General Share", res_sh: "Reset Sales History", shis: "Sales History", eggs_to: "eggs to",
+                banct: "Bancontact App link", cash: "Cash", none: "N/A", plink: "Bancontact App Link (Paste here)", save_ns: "Save without Sharing", gen_sh: "General Share", res_sh: "Reset Sales History", shis: "Sales History", eggs_to: "eggs to",
                 pt_t: "Poultry Costs", pt_s: "These eggs are not free, alas!", tmc: "Total Costs (Month)", cost_e: "Cost (€)", cat: "Category", food: "Food", lit: "Litter", med: "Medicine", oth: "Others", lc: "Log Cost", res_c: "Reset Costs History", ch: "Costs History",
                 rep_t: "Reports", rep_s: "Insights into your poultry performance!", lm: "Last Month", m3: "3 Months", ly: "Last Year", ever: "Ever", harv: "Harvested",
                 es: "Eggs Sold", rev: "Revenue", cost: "Cost", np: "Net Profit",
@@ -428,7 +428,7 @@
                 fullname: "Nom Complet", phone: "Numéro de Téléphone", comment: "Comment (Optionnel)", save_cons: "Enregistrer Client", res_cons: "Réinitialiser la liste", unknown: "Inconnu",
                 st: "Gestion des Ventes", ss: "Ces œufs méritent d'être partagés !", sm: "Ventes (Mois)", rm: "Revenus (Mois)", esm: "Œufs Vendus (Mois)", cons: "Client", sel_cons: "Sélectionner un client",
                 tot: "Type de Transaction", sale: "Vente", gift: "Don", own: "Usage Personnel", price: "Prix Demandé (€)", pm: "Méthode de Paiement",
-                banct: "Lien Bancontact", cash: "Espèces", none: "N/A", plink: "Lien Payconiq (Coller ici)", save_ns: "Enregistrer sans partager", gen_sh: "Partage Général", res_sh: "Effacer l'historique", shis: "Historique des Ventes", eggs_to: "œufs à",
+                banct: "Lien Bancontact", cash: "Espèces", none: "N/A", plink: "Lien Bancontact App (Coller ici)", save_ns: "Enregistrer sans partager", gen_sh: "Partage Général", res_sh: "Effacer l'historique", shis: "Historique des Ventes", eggs_to: "œufs à",
                 pt_t: "Coûts du Poulailler", pt_s: "Ces œufs ne sont pas gratuits, hélas !", tmc: "Coûts Totaux (Mois)", cost_e: "Coût (€)", cat: "Catégorie", food: "Nourriture", lit: "Litière", med: "Médicaments", oth: "Autres", lc: "Enregistrer Coût", res_c: "Effacer l'historique", ch: "Historique des Coûts",
                 rep_t: "Rapports", rep_s: "Aperçu des performances de votre poulailler !", lm: "Mois Dernier", m3: "3 Mois", ly: "L'année dernière", ever: "Toujours", harv: "Récolté",
                 es: "Œufs Vendus", rev: "Revenus", cost: "Coûts", np: "Bénéfice Net",
@@ -905,6 +905,9 @@
         /** Renders the Harvest tracking tab */
         function renderHarvest() {
             const stats = getMonthlyStats('harvest', 'date', 'count');
+            const sortedHarvest = getSorted(state.harvest);
+            const lastEntryCount = sortedHarvest.length > 0 ? sortedHarvest[0].count : 4;
+
             mainContent.innerHTML = `
                 <div class="view-content">
                     <header class="view-header">
@@ -929,9 +932,9 @@
                                 <label>${t('date')}</label>
                                 <input type="date" id="h-date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
                             </div>
-                            <div class="form-group">
+                             <div class="form-group">
                                 <label>${t('no_eggs')}</label>
-                                <input type="number" id="h-count" class="form-input" value="4">
+                                <input type="number" id="h-count" class="form-input" value="${lastEntryCount}" onfocus="this.value=''">
                             </div>
                             <button class="btn btn-primary btn-block">${t('save_h')}</button>
                         </form>
@@ -1110,7 +1113,7 @@
                                     <option value="none">${t('none')}</option>
                                 </select>
                             </div>
-                            <div class="form-group hidden" id="paylink-group">
+                            <div class="form-group" id="paylink-group">
                                 <label>${t('plink')}</label>
                                 <input type="url" id="s-paylink" class="form-input">
                             </div>
