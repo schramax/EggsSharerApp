@@ -860,7 +860,7 @@
                         <h3 class="stat-label" style="margin-bottom: 0.5rem">${t('adj_sc')}</h3>
                         <div class="stepper-container">
                             <button class="stepper-btn" onclick="decStock()"><i data-lucide="minus"></i></button>
-                            <input type="number" id="adj-stock-input" class="form-input" style="text-align: center; font-weight: bold; flex: 1" value="0" onfocus="this.value=''">
+                            <input type="number" id="adj-stock-input" class="form-input" style="text-align: center; font-weight: bold; flex: 1" value="0" onfocus="this.dataset.old=this.value; this.value='';" onblur="if(this.value==='') this.value=this.dataset.old;">
                             <button class="stepper-btn" onclick="incStock()"><i data-lucide="plus"></i></button>
                         </div>
                         <button class="btn btn-primary btn-block" onclick="adjustStock()">${t('adj_sc')}</button>
@@ -909,6 +909,7 @@
             const stats = getMonthlyStats('harvest', 'date', 'count');
             const sortedHarvest = getSorted(state.harvest);
             const lastEntryCount = sortedHarvest.length > 0 ? sortedHarvest[0].count : 4;
+            const todayISO = new Date().toISOString().split('T')[0];
 
             mainContent.innerHTML = `
                 <div class="view-content">
@@ -932,11 +933,11 @@
                         <form id="harvest-form">
                             <div class="form-group">
                                 <label>${t('date')}</label>
-                                <input type="date" id="h-date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+                                <input type="date" id="h-date" class="form-input" value="${todayISO}" max="${todayISO}">
                             </div>
                              <div class="form-group">
                                 <label>${t('no_eggs')}</label>
-                                <input type="number" id="h-count" class="form-input" value="${lastEntryCount}" onfocus="this.value=''">
+                                <input type="number" id="h-count" class="form-input" value="${lastEntryCount}" onfocus="this.dataset.old=this.value; this.value='';" onblur="if(this.value==='') this.value=this.dataset.old;">
                             </div>
                             <button class="btn btn-primary btn-block">${t('save_h')}</button>
                         </form>
@@ -994,13 +995,13 @@
 
                     <div class="card">
                         <form id="consumer-form">
-                            <div class="form-group">
+                             <div class="form-group">
                                 <label>${t('fullname')}</label>
-                                <input type="text" id="c-name" class="form-input">
+                                <input type="text" id="c-name" class="form-input" placeholder="Eggsy Benedict">
                             </div>
                             <div class="form-group">
                                 <label>${t('phone')}</label>
-                                <input type="tel" id="c-phone" class="form-input">
+                                <input type="tel" id="c-phone" class="form-input" placeholder="+32 444 444719">
                             </div>
                             <div class="form-group">
                                 <label>${t('comment')}</label>
@@ -1057,6 +1058,7 @@
         function renderSales() {
             const stats = getMonthlyStats('sales', 'date', 'price');
             const eggsSold = getMonthlyStats('sales', 'date', 'count');
+            const todayISO = new Date().toISOString().split('T')[0];
 
             mainContent.innerHTML = `
                 <div class="view-content">
@@ -1084,7 +1086,7 @@
                         <form id="sales-form">
                             <div class="form-group">
                                 <label>${t('date')}</label>
-                                <input type="date" id="s-date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+                                <input type="date" id="s-date" class="form-input" value="${todayISO}" max="${todayISO}">
                             </div>
                             <div class="form-group">
                                 <label>${t('tot')}</label>
@@ -1096,11 +1098,11 @@
                             </div>
                             <div class="form-group">
                                 <label>${t('no_eggs')}</label>
-                                <input type="number" id="s-count" class="form-input" value="6" onfocus="this.value=''">
+                                <input type="number" id="s-count" class="form-input" value="6" onfocus="this.dataset.old=this.value; this.value='';" onblur="if(this.value==='') this.value=this.dataset.old;">
                             </div>
                             <div class="form-group">
                                 <label>${t('price')}</label>
-                                <input type="number" id="s-price" class="form-input" value="2" step="0.1" onfocus="this.value=''">
+                                <input type="number" id="s-price" class="form-input" value="2" step="0.1" onfocus="this.dataset.old=this.value; this.value='';" onblur="if(this.value==='') this.value=this.dataset.old;">
                             </div>
                             <div class="form-group" id="consumer-group">
                                 <label>${t('cons')}</label>
@@ -1242,6 +1244,7 @@
         /** Renders the Costs tracking tab */
         function renderCosts() {
             const stats = getMonthlyStats('costs', 'date', 'amount');
+            const todayISO = new Date().toISOString().split('T')[0];
             mainContent.innerHTML = `
                 <div class="view-content">
                     <header class="view-header">
@@ -1260,11 +1263,11 @@
                         <form id="cost-form">
                             <div class="form-group">
                                 <label>${t('date')}</label>
-                                <input type="date" id="cost-date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+                                <input type="date" id="cost-date" class="form-input" value="${todayISO}" max="${todayISO}">
                             </div>
                             <div class="form-group">
                                 <label>${t('cost_e')}</label>
-                                <input type="number" id="cost-amount" class="form-input" value="0.00" step="0.01" onfocus="this.value=''">
+                                <input type="number" id="cost-amount" class="form-input" value="0.00" step="0.01" onfocus="this.dataset.old=this.value; this.value='';" onblur="if(this.value==='') this.value=this.dataset.old;">
                             </div>
                             <div class="form-group">
                                 <label>${t('cat')}</label>
