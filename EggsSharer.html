@@ -416,7 +416,8 @@
                 email_verified: "Email verified", email_not_verified: "Email not verified", send_verif: "Send verification email", verif_sent: "Verification email sent! Check your inbox.",
                 change_email: "Change Email Address", new_email_lbl: "New Email Address", save_email: "Update Email", email_updated: "Verification link sent to your NEW email! Please click it to complete the change.",
                 confirm_change_email: "Send verification link to {email} to change your account address?",
-                err_login: "Invalid email or password.", err_email_used: "This email is already in use.", err_weak_pass: "Password should be at least 6 characters.", err_generic: "An error occurred. Please try again."
+                err_login: "Invalid email or password.", err_email_used: "This email is already in use.", err_weak_pass: "Password should be at least 6 characters.", err_generic: "An error occurred. Please try again.",
+                err_future_date: "Future dates are not allowed."
             },
             fr: {
                 nav_home: "Accueil", nav_harv: "Récolte", nav_cons: "Clients", nav_sale: "Ventes", nav_cost: "Coûts", nav_rep: "Rapports", nav_set: "Paramètres",
@@ -445,7 +446,8 @@
                 email_verified: "Email vérifié", email_not_verified: "Email non vérifié", send_verif: "Envoyer un email de vérification", verif_sent: "Email de vérification envoyé ! Vérifiez votre boîte de réception.",
                 change_email: "Changer l'adresse email", new_email_lbl: "Nouvelle adresse email", save_email: "Mettre à jour l'email", email_updated: "Lien de vérification envoyé à votre NOUVELLE adresse ! Cliquez dessus pour confirmer le changement.",
                 confirm_change_email: "Envoyer un lien de vérification à {email} pour changer l'adresse de votre compte ?",
-                err_login: "Email ou mot de passe invalide.", err_email_used: "Cet email est déjà utilisé.", err_weak_pass: "Le mot de passe doit faire au moins 6 caractères.", err_generic: "Une erreur est survenue. Veuillez réessayer."
+                err_login: "Email ou mot de passe invalide.", err_email_used: "Cet email est déjà utilisé.", err_weak_pass: "Le mot de passe doit faire au moins 6 caractères.", err_generic: "Une erreur est survenue. Veuillez réessayer.",
+                err_future_date: "Les dates futures ne sont pas autorisées."
             }
         };
 
@@ -858,7 +860,7 @@
                         <h3 class="stat-label" style="margin-bottom: 0.5rem">${t('adj_sc')}</h3>
                         <div class="stepper-container">
                             <button class="stepper-btn" onclick="decStock()"><i data-lucide="minus"></i></button>
-                            <input type="number" id="adj-stock-input" class="form-input" style="text-align: center; font-weight: bold; flex: 1" value="0">
+                            <input type="number" id="adj-stock-input" class="form-input" style="text-align: center; font-weight: bold; flex: 1" value="0" onfocus="this.value=''">
                             <button class="stepper-btn" onclick="incStock()"><i data-lucide="plus"></i></button>
                         </div>
                         <button class="btn btn-primary btn-block" onclick="adjustStock()">${t('adj_sc')}</button>
@@ -958,14 +960,16 @@
 
             document.getElementById('harvest-form').onsubmit = (e) => {
                 e.preventDefault();
-                const date = document.getElementById('h-date').value;
+                const hDate = document.getElementById('h-date').value;
+                if (new Date(hDate) > new Date()) return alert(t('err_future_date'));
+                
                 const count = parseInt(document.getElementById('h-count').value);
-                const existing = state.harvest.find(h => h.date === date);
+                const existing = state.harvest.find(h => h.date === hDate);
                 if (existing) {
                     // Update existing entry for that date instead of adding a duplicate
                     existing.count = count;
                 } else {
-                    state.harvest.push({ id: Date.now().toString(), date, count });
+                    state.harvest.push({ id: Date.now().toString(), date: hDate, count });
                 }
                 save('harvest');
                 renderView('harvest');
@@ -1092,11 +1096,11 @@
                             </div>
                             <div class="form-group">
                                 <label>${t('no_eggs')}</label>
-                                <input type="number" id="s-count" class="form-input" value="6">
+                                <input type="number" id="s-count" class="form-input" value="6" onfocus="this.value=''">
                             </div>
                             <div class="form-group">
                                 <label>${t('price')}</label>
-                                <input type="number" id="s-price" class="form-input" value="2" step="0.1">
+                                <input type="number" id="s-price" class="form-input" value="2" step="0.1" onfocus="this.value=''">
                             </div>
                             <div class="form-group" id="consumer-group">
                                 <label>${t('cons')}</label>
@@ -1185,13 +1189,16 @@
             };
 
             window.submitSale = (method) => {
+                const sDate = document.getElementById('s-date').value;
+                if (new Date(sDate) > new Date()) return alert(t('err_future_date'));
+
                 const type = typeSel.value;
                 const consumerId = document.getElementById('s-consumer').value;
                 // Consumer is required only for actual sales
                 if (type === 'sale' && !consumerId) return alert(t('alert_sel_cons'));
                 const sale = {
                     id: Date.now().toString(),
-                    date: document.getElementById('s-date').value,
+                    date: sDate,
                     consumerId: consumerId || null,
                     count: parseInt(document.getElementById('s-count').value),
                     type,
@@ -1257,7 +1264,7 @@
                             </div>
                             <div class="form-group">
                                 <label>${t('cost_e')}</label>
-                                <input type="number" id="cost-amount" class="form-input" value="0.00" step="0.01">
+                                <input type="number" id="cost-amount" class="form-input" value="0.00" step="0.01" onfocus="this.value=''">
                             </div>
                             <div class="form-group">
                                 <label>${t('cat')}</label>
@@ -1290,9 +1297,12 @@
 
             document.getElementById('cost-form').onsubmit = (e) => {
                 e.preventDefault();
+                const cDate = document.getElementById('cost-date').value;
+                if (new Date(cDate) > new Date()) return alert(t('err_future_date'));
+
                 state.costs.push({
                     id: Date.now().toString(),
-                    date: document.getElementById('cost-date').value,
+                    date: cDate,
                     amount: parseFloat(document.getElementById('cost-amount').value),
                     category: document.getElementById('cost-cat').value
                 });
