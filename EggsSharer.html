@@ -1565,9 +1565,10 @@
             // Payment analysis bars (3 side-by-side)
             const commonBarOptions = {
                 maintainAspectRatio: false,
+                layout: { padding: { top: 25 } },
                 plugins: { legend: { display: false }, datalabels: { display: true, anchor: 'end', align: 'top', font: { weight: 'bold', size: 12 } } },
                 scales: { 
-                    y: { display: false, beginAtZero: true, grace: '25%' }, 
+                    y: { display: false, beginAtZero: true, grace: '35%' }, 
                     x: { display: false } 
                 }
             };
